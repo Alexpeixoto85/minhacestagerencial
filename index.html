@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -498,10 +497,8 @@ async function formSupermercado(id=null){
       <div class="campo"><label>CNPJ</label><input id="f-cnpj" value="${esc(ed?.cnpj||"")}" placeholder="00.000.000/0001-00"></div>
       <div class="campo"><label>Ícone</label><input id="f-emoji" value="${esc(ed?.emoji||"🏬")}" maxlength="2"></div>
     </div>
-    <div class="cep-linha">
-      <div class="campo"><label>CEP</label><input id="f-cep" value="${esc(ed?.cep||"")}" placeholder="00000-000" maxlength="9"></div>
-      <button class="btn fantasma" id="f-buscar-cep" type="button">Buscar CEP</button>
-    </div>
+    <div class="campo"><label>CEP</label><input id="f-cep" type="text" inputmode="numeric" autocomplete="off" value="${esc(ed?.cep||"")}" placeholder="00000-000" maxlength="9"></div>
+    <button class="btn fantasma full" id="f-buscar-cep" type="button" style="margin-bottom:12px">🔍 Buscar endereço e localização pelo CEP</button>
     <div id="f-geo" class="geo-status ${ed?.lat!=null?'ok':'carregando'}">${ed?.lat!=null?`📍 Localização salva: ${(+ed.lat).toFixed(5)}, ${(+ed.lng).toFixed(5)}`:`Digite o CEP e clique em <b>Buscar CEP</b> para carregar endereço e localização.`}</div>
     <div class="campo"><label>Endereço completo</label><input id="f-end" value="${esc(ed?.endereco||"")}" placeholder="Rua, nº — bairro, cidade/UF"></div>
     <div class="linha-3">
@@ -522,6 +519,7 @@ async function formSupermercado(id=null){
   `);
 
   const geoBox=$("#f-geo");
+  $("#f-cep").addEventListener("input",e=>{ const d=e.target.value.replace(/\D/g,"").slice(0,8); e.target.value=d.length>5?d.slice(0,5)+"-"+d.slice(5):d; });
   $("#f-buscar-cep").onclick=async()=>{
     const cep=$("#f-cep").value;
     geoBox.className="geo-status carregando"; geoBox.innerHTML="Buscando CEP e localização…";
@@ -902,7 +900,7 @@ Object.assign(window,{
 
 (async function init(){
   try{
-    const ls=$("#link-site"); if(ls) ls.href="cesta-site.html";
+    const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
     await semear();
     selPapel("admin");
     const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
