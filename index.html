@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -10,7 +11,7 @@
     --verde-suave:#74c69d;--verde-papel:#eef3ec;--creme:#fbfdf8;--oferta:#ffb703;--oferta-forte:#fb8500;
     --preco-promo:#d62828;--tinta:#13241c;--cinza:#647067;--linha:#dde6db;--branco:#fff;
     --sombra:0 1px 2px rgba(15,46,34,.06),0 8px 24px rgba(15,46,34,.08);--raio:14px;
-    --gestao:#264653;--gestao-claro:#2a9d8f;--patroc:#7048e8;--patroc-claro:#9775fa;
+    --gestao:#264653;--gestao-claro:#2a9d8f;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;background:var(--verde-papel);color:var(--tinta);line-height:1.5;min-height:100vh}
@@ -39,7 +40,6 @@
   .btn.fantasma{background:transparent;color:var(--gestao);box-shadow:inset 0 0 0 1.5px var(--gestao-claro)}
   .btn.fantasma:hover{background:#eaf1f0}
   .btn.oferta{background:var(--oferta-forte)}.btn.oferta:hover{background:#e07600}
-  .btn.patroc{background:var(--patroc)}.btn.patroc:hover{background:#5f3dc4}
   .btn.perigo{background:#fff;color:var(--preco-promo);box-shadow:inset 0 0 0 1.5px #f2c1c1}.btn.perigo:hover{background:#fdf0f0}
   .btn.peq{padding:7px 13px;font-size:13px;border-radius:8px}
   .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
@@ -49,22 +49,9 @@
   .campo label{display:block;font-size:13px;font-weight:600;color:var(--gestao);margin-bottom:5px}
   .campo input,.campo select,.campo textarea{width:100%;padding:11px 13px;border:1.5px solid var(--linha);border-radius:10px;background:var(--creme);color:var(--tinta)}
   .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--gestao-claro);background:#fff}
-  .campo textarea{resize:vertical;min-height:70px}
+  .campo textarea{resize:vertical;min-height:70px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
   .linha-campos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .linha-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-  @media(max-width:560px){.linha-campos,.linha-3{grid-template-columns:1fr}}
-  .cep-linha{display:flex;gap:8px;align-items:flex-end}
-  .cep-linha .campo{flex:1;margin-bottom:0}
-  .geo-status{font-size:12.5px;border-radius:10px;padding:10px 12px;margin:2px 0 14px;line-height:1.45}
-  .geo-status.ok{background:#e8f6ef;color:#1b6b4f}
-  .geo-status.erro{background:#fdeaea;color:var(--preco-promo)}
-  .geo-status.carregando{background:#eef3ec;color:var(--cinza)}
-
-  .foto-campo{margin-bottom:14px}
-  .foto-drop{display:flex;align-items:center;gap:14px;border:1.5px dashed var(--linha);border-radius:12px;padding:12px;background:var(--creme)}
-  .foto-previa{width:70px;height:70px;border-radius:10px;object-fit:cover;background:#eef3ec;flex-shrink:0;display:grid;place-items:center;font-size:26px;color:var(--cinza)}
-  .foto-acoes{flex:1;display:flex;flex-direction:column;gap:7px}
-  .foto-acoes .min{font-size:11.5px;color:var(--cinza)}
+  @media(max-width:560px){.linha-campos{grid-template-columns:1fr}}
 
   .portal{min-height:calc(100vh - 60px);display:grid;place-items:center;padding:30px 18px}
   .portal-caixa{width:100%;max-width:420px}
@@ -80,12 +67,11 @@
   .dica-login{font-size:12px;color:var(--cinza);text-align:center;margin-top:14px}
   .dica-login code{background:var(--verde-papel);padding:2px 6px;border-radius:5px;color:var(--gestao);font-size:11.5px}
 
-  .voltar{display:inline-flex;align-items:center;gap:6px;color:var(--cinza);font-size:14px;font-weight:600;margin-bottom:14px;padding:5px 0;cursor:pointer}
+  .voltar{display:inline-flex;align-items:center;gap:6px;color:var(--cinza);font-size:14px;font-weight:600;margin-bottom:14px;padding:5px 0}
   .voltar:hover{color:var(--gestao)}
   .barra-secoes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
   .barra-secoes button{padding:9px 16px;border-radius:10px;font-weight:600;font-size:14px;color:var(--cinza);background:#fff;box-shadow:var(--sombra)}
   .barra-secoes button.on{background:var(--gestao);color:#fff}
-  .barra-secoes button.on.pat{background:var(--patroc)}
   .titulo-secao{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px;flex-wrap:wrap}
   .titulo-secao h2{font-size:23px;color:var(--gestao)}
   .titulo-secao .sub{font-size:13px;color:var(--cinza);margin-top:2px}
@@ -95,7 +81,6 @@
   .item-linha .corpo{flex:1;min-width:0}
   .item-linha .nome{font-weight:600;color:var(--gestao)}
   .item-linha .meta{font-size:12.5px;color:var(--cinza);margin-top:2px}
-  .item-foto{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#eef3ec}
   .acoes{display:flex;gap:7px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
   .vazio{text-align:center;padding:42px 20px;color:var(--cinza)}
   .vazio .ic{font-size:40px;opacity:.5;margin-bottom:10px}
@@ -107,47 +92,32 @@
   .stat .r{font-size:12.5px;color:var(--cinza);margin-top:1px}
 
   .info-merc{background:#fff;border-radius:13px;box-shadow:var(--sombra);padding:16px 18px;display:flex;align-items:center;gap:14px;margin-bottom:20px}
-  .info-merc .av{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--gestao-claro),#1d6f64);display:grid;place-items:center;font-size:24px;flex-shrink:0;color:#fff;overflow:hidden}
-  .info-merc .av img{width:100%;height:100%;object-fit:cover}
+  .info-merc .av{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--gestao-claro),#1d6f64);display:grid;place-items:center;font-size:24px;flex-shrink:0}
   .info-merc .corpo{flex:1}
   .info-merc .corpo b{color:var(--gestao);font-size:17px}
   .info-merc .corpo div{font-size:12.5px;color:var(--cinza)}
-  .pin{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;color:var(--gestao-claro);font-weight:600}
 
   .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px}
   .tag.promo{background:#fdeaea;color:var(--preco-promo)}
-  .tag.on{background:#e8f6ef;color:#1b6b4f}
-  .tag.off{background:#eef0f2;color:var(--cinza)}
 
   .banners{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
-  .banner{border-radius:16px;padding:20px 22px;color:#3a2400;position:relative;overflow:hidden;min-height:130px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(120deg,var(--oferta),var(--oferta-forte));box-shadow:0 6px 20px rgba(251,133,0,.25)}
+  .banner{border-radius:16px;padding:20px 22px;color:#3a2400;position:relative;overflow:hidden;min-height:120px;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(120deg,var(--oferta),var(--oferta-forte));box-shadow:0 6px 20px rgba(251,133,0,.25)}
   .banner.verde{background:linear-gradient(120deg,#74c69d,#2d6a4f);color:#06281c;box-shadow:0 6px 20px rgba(45,106,79,.25)}
-  .banner.com-foto{color:#fff}
-  .banner .bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
-  .banner .bg::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent,rgba(0,0,0,.62))}
-  .banner::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.16);z-index:0}
-  .banner.com-foto::after{display:none}
-  .banner>*{position:relative;z-index:1}
-  .banner .et{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.82}
-  .banner h3{font-size:21px;margin:6px 0 4px}
-  .banner p{font-size:13px;max-width:90%}
-  .banner .val{margin-top:8px;font-size:11px;font-weight:600;opacity:.85}
+  .banner::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.16)}
+  .banner .et{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.72}
+  .banner h3{font-size:21px;margin:6px 0 4px;position:relative;z-index:1}
+  .banner p{font-size:13px;position:relative;z-index:1;max-width:78%}
+  .banner .val{position:absolute;bottom:13px;right:16px;font-size:11px;font-weight:600;opacity:.8;z-index:1}
   .banner .ed{position:absolute;top:12px;right:12px;display:flex;gap:6px;z-index:2}
-  .pcard{background:#fff;border-radius:16px;box-shadow:var(--sombra);overflow:hidden;display:flex;flex-direction:column}
-  .pcard .ph{height:150px;background:linear-gradient(120deg,var(--patroc-claro),var(--patroc));background-size:cover;background-position:center;display:grid;place-items:center;color:#fff;font-size:36px}
-  .pcard .bd{padding:15px 17px;flex:1;display:flex;flex-direction:column;gap:5px}
-  .pcard .bd h3{font-size:18px;color:var(--gestao)}
-  .pcard .bd p{font-size:13px;color:var(--cinza)}
-  .pcard .rod{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 17px;border-top:1px solid var(--linha)}
 
   .modal-fundo{position:fixed;inset:0;background:rgba(15,46,34,.55);display:none;place-items:center;z-index:100;padding:18px;backdrop-filter:blur(2px)}
   .modal-fundo.on{display:grid}
-  .modal{background:#fff;border-radius:18px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-  .modal-cabeca{padding:18px 22px;border-bottom:1px solid var(--linha);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:2}
+  .modal{background:#fff;border-radius:18px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal-cabeca{padding:18px 22px;border-bottom:1px solid var(--linha);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff}
   .modal-cabeca h3{font-size:19px;color:var(--gestao)}
   .modal-cabeca .x{font-size:24px;color:var(--cinza);line-height:1}
   .modal-corpo{padding:22px}
-  .modal-pe{padding:0 22px 22px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .modal-pe{padding:0 22px 22px;display:flex;gap:10px;justify-content:flex-end}
   .ajuda{font-size:12px;color:var(--cinza);background:var(--verde-papel);padding:10px 12px;border-radius:9px;margin-bottom:12px;line-height:1.5}
   .ajuda code{background:#fff;padding:1px 5px;border-radius:4px;color:var(--gestao)}
 
@@ -167,9 +137,10 @@
 </head>
 <body>
 
+<!-- carregando -->
 <div id="carregando" class="carregando"><div class="spinner"></div></div>
 
-<!-- PORTAL -->
+<!-- PORTAL (somente admin e supermercado) -->
 <div id="tela-portal" class="portal escondido">
   <div class="portal-caixa">
     <div class="portal-cabeca">
@@ -219,7 +190,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc,
-  deleteDoc, query, where, writeBatch
+  deleteDoc, query, where, onSnapshot, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -234,7 +205,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db  = getFirestore(app);
 
-/* ====== camada de dados ====== */
+/* ====== camada de dados Firestore ====== */
 async function fsAll(col){ const s=await getDocs(collection(db,col)); return s.docs.map(d=>({id:d.id,...d.data()})); }
 async function fsGet(col,id){ const s=await getDoc(doc(db,col,id)); return s.exists()?{id:s.id,...s.data()}:null; }
 async function fsAdd(col,obj){ const r=await addDoc(collection(db,col),obj); return r.id; }
@@ -272,90 +243,12 @@ function vazioHTML(ic,t,p,onclick="",botao=""){
   return `<div class="vazio"><div class="ic">${ic}</div><b style="color:var(--gestao);font-size:16px">${esc(t)}</b><p>${esc(p)}</p>${botao?`<button class="btn" onclick="${onclick}">${esc(botao)}</button>`:""}</div>`;
 }
 
-/* ====== FOTOS: compressão e campo reaproveitável ====== */
-// guarda o data URL atual de cada campo de foto por chave
-const FOTOS={};
-function comprimirImagem(file, maxDim=720, q=0.72){
-  return new Promise((res,rej)=>{
-    if(!file) return rej("sem arquivo");
-    if(file.size>8*1024*1024) return rej("Imagem muito grande (máx 8MB). Escolha outra.");
-    const fr=new FileReader();
-    fr.onload=()=>{
-      const img=new Image();
-      img.onload=()=>{
-        let{width:w,height:h}=img;
-        if(w>h && w>maxDim){h=Math.round(h*maxDim/w);w=maxDim;}
-        else if(h>=w && h>maxDim){w=Math.round(w*maxDim/h);h=maxDim;}
-        const cv=document.createElement("canvas");cv.width=w;cv.height=h;
-        cv.getContext("2d").drawImage(img,0,0,w,h);
-        res(cv.toDataURL("image/jpeg",q));
-      };
-      img.onerror=()=>rej("Arquivo não é uma imagem válida.");
-      img.src=fr.result;
-    };
-    fr.onerror=()=>rej("Falha ao ler a imagem.");
-    fr.readAsDataURL(file);
-  });
-}
-// devolve o HTML de um campo de foto; `chave` identifica os inputs
-function campoFotoHTML(chave,label,valorAtual="",emojiFallback="🖼️"){
-  FOTOS[chave]=valorAtual||"";
-  const previa=valorAtual
-    ? `<img src="${valorAtual}" class="foto-previa" id="prev-${chave}">`
-    : `<div class="foto-previa" id="prev-${chave}">${emojiFallback}</div>`;
-  return `<div class="foto-campo"><label style="display:block;font-size:13px;font-weight:600;color:var(--gestao);margin-bottom:6px">${esc(label)}</label>
-    <div class="foto-drop">
-      ${previa}
-      <div class="foto-acoes">
-        <input type="file" id="file-${chave}" accept="image/*" style="font-size:13px">
-        <input type="text" id="url-${chave}" placeholder="ou cole um link de imagem (https://...)" style="padding:8px 10px;border:1.5px solid var(--linha);border-radius:8px;background:var(--creme)">
-        <div class="min" id="min-${chave}">JPG/PNG · será redimensionada para caber na nuvem.</div>
-      </div>
-    </div></div>`;
-}
-// liga os eventos do campo de foto após inserir no DOM
-function ligarCampoFoto(chave){
-  const fileEl=$("#file-"+chave), urlEl=$("#url-"+chave), prev=$("#prev-"+chave), min=$("#min-"+chave);
-  const setPrev=src=>{
-    if(prev.tagName==="IMG"){ prev.src=src; }
-    else { const img=new Image(); img.className="foto-previa"; img.id="prev-"+chave; img.src=src; prev.replaceWith(img); }
-  };
-  fileEl?.addEventListener("change",async e=>{
-    const f=e.target.files[0]; if(!f) return;
-    min.textContent="Processando imagem…";
-    try{ const d=await comprimirImagem(f); FOTOS[chave]=d; setPrev(d); min.textContent="Imagem pronta ✓"; if(urlEl)urlEl.value=""; }
-    catch(err){ min.textContent=String(err); toast(String(err),true); }
-  });
-  urlEl?.addEventListener("input",()=>{
-    const u=urlEl.value.trim();
-    if(/^https?:\/\//i.test(u)){ FOTOS[chave]=u; setPrev(u); min.textContent="Usando link externo ✓"; }
-    else if(!u && !($("#file-"+chave)?.files?.length)){ FOTOS[chave]=""; }
-  });
-}
-
-/* ====== CEP → geolocalização (ViaCEP + Nominatim/OSM) ====== */
-async function buscarCEP(cep){
-  const limpo=String(cep).replace(/\D/g,"");
-  if(limpo.length!==8) throw new Error("CEP deve ter 8 dígitos.");
-  const r=await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
-  const j=await r.json();
-  if(j.erro) throw new Error("CEP não encontrado.");
-  return {cep:limpo,logradouro:j.logradouro||"",bairro:j.bairro||"",cidade:j.localidade||"",uf:j.uf||""};
-}
-async function geocodificar(texto){
-  const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&q=${encodeURIComponent(texto)}`;
-  const r=await fetch(url,{headers:{"Accept":"application/json"}});
-  const j=await r.json();
-  if(!j.length) return null;
-  return {lat:parseFloat(j[0].lat),lng:parseFloat(j[0].lon)};
-}
-
-/* expõe utilidades ao escopo global */
+/* expõe utilidades/handlers ao escopo global (necessário em type=module) */
 window.fecharModal=fecharModal;
 
 /* ====== sessão ====== */
 const ADMIN={user:"admin",senha:"admin"};
-let sessao=null;
+let sessao=null;          // {papel, id, nome}
 let papelSel="admin";
 
 function selPapel(p){
@@ -382,6 +275,7 @@ async function fazerLogin(){
   sessao={papel:"supermercado",id:conta.id,nome:conta.nome};
   entrarApp();
 }
+
 function sair(){
   sessao=null;
   try{ localStorage.removeItem("cesta_g_sessao"); }catch(e){}
@@ -389,6 +283,7 @@ function sair(){
   $("#tela-portal").classList.remove("escondido");
   $("#entrar-user").value=""; $("#entrar-senha").value="";
 }
+
 function entrarApp(){
   try{ localStorage.setItem("cesta_g_sessao",JSON.stringify(sessao)); }catch(e){}
   $("#tela-portal").classList.add("escondido");
@@ -399,80 +294,62 @@ function entrarApp(){
   else painelLoja(sessao.id,false);
 }
 
-/* ====== seed inicial ====== */
+/* ====== seed inicial (só roda se vazio) ====== */
 async function semear(){
   const merc=await fsAll("supermercados");
   if(merc.length>0) return;
-  const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",
-    endereco:"Av. Fernandes Lima, 100 — Maceió/AL",cep:"57051160",bairro:"Farol",cidade:"Maceió",uf:"AL",lat:-9.6498,lng:-35.7089,emoji:"🏬"});
-  const m2=await fsAdd("supermercados",{nome:"Hortifruti da Praça",email:"horti@loja.com",senha:"123",cnpj:"22.222.222/0001-22",
-    endereco:"R. do Comércio, 45 — Centro, Maceió/AL",cep:"57020030",bairro:"Centro",cidade:"Maceió",uf:"AL",lat:-9.6660,lng:-35.7350,emoji:"🥬"});
+  const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",endereco:"Av. Fernandes Lima, 100 — Maceió/AL",emoji:"🏬"});
+  const m2=await fsAdd("supermercados",{nome:"Hortifruti da Praça",email:"horti@loja.com",senha:"123",cnpj:"22.222.222/0001-22",endereco:"R. do Comércio, 45 — Centro",emoji:"🥬"});
   const prods=[
     [m1,"Arroz tipo 1 — 5kg","Mercearia",27.90,22.90,true],[m1,"Feijão carioca — 1kg","Mercearia",8.49,null,false],
     [m1,"Óleo de soja — 900ml","Mercearia",7.20,null,false],[m1,"Açúcar refinado — 1kg","Mercearia",4.99,3.79,true],
     [m1,"Café torrado — 500g","Mercearia",18.90,15.90,true],[m1,"Leite integral — 1L","Laticínios",5.49,null,false],
     [m1,"Sabão em pó — 1kg","Limpeza",14.90,11.90,true],[m1,"Refrigerante — 2L","Bebidas",8.99,null,false],
-    [m2,"Arroz tipo 1 — 5kg","Mercearia",26.50,null,false],[m2,"Feijão carioca — 1kg","Mercearia",7.99,6.90,true],
-    [m2,"Leite integral — 1L","Laticínios",5.20,null,false],[m2,"Banana prata — kg","Hortifruti",4.99,3.49,true],
-    [m2,"Tomate — kg","Hortifruti",6.90,null,false],[m2,"Alface crespa — un","Hortifruti",2.50,null,false],
-    [m2,"Maçã gala — kg","Hortifruti",9.90,7.90,true],[m2,"Cenoura — kg","Hortifruti",4.20,null,false],
-    [m2,"Ovos — dúzia","Laticínios",12.90,9.90,true],
+    [m2,"Banana prata — kg","Hortifruti",4.99,3.49,true],[m2,"Tomate — kg","Hortifruti",6.90,null,false],
+    [m2,"Alface crespa — un","Hortifruti",2.50,null,false],[m2,"Maçã gala — kg","Hortifruti",9.90,7.90,true],
+    [m2,"Cenoura — kg","Hortifruti",4.20,null,false],[m2,"Ovos — dúzia","Laticínios",12.90,9.90,true],
   ];
   for(const [sid,nome,cat,preco,promo,emPromo] of prods)
-    await fsAdd("produtos",{supermercadoId:sid,nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,precoPromocional:promo,emPromocao:emPromo,unidade:"un",foto:""});
-  await fsAdd("ofertas",{supermercadoId:m1,titulo:"Semana da Mercearia",descricao:"Itens essenciais com até 25% de desconto.",validade:"Até domingo",cor:"laranja",foto:""});
-  await fsAdd("ofertas",{supermercadoId:m2,titulo:"Feira fresquinha",descricao:"Frutas e verduras selecionadas com preço especial.",validade:"Hoje e amanhã",cor:"verde",foto:""});
-  await fsAdd("patrocinados",{titulo:"Cartão Cesta+",descricao:"Cadastre-se e ganhe 5% de volta nas suas compras.",link:"",validade:"Oferta contínua",foto:"",ativo:true,criadoEm:Date.now()});
+    await fsAdd("produtos",{supermercadoId:sid,nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,precoPromocional:promo,emPromocao:emPromo,unidade:"un"});
+  await fsAdd("ofertas",{supermercadoId:m1,titulo:"Semana da Mercearia",descricao:"Itens essenciais com até 25% de desconto.",validade:"Até domingo",cor:"laranja"});
+  await fsAdd("ofertas",{supermercadoId:m2,titulo:"Feira fresquinha",descricao:"Frutas e verduras selecionadas com preço especial.",validade:"Hoje e amanhã",cor:"verde"});
 }
 
 /* ============================================================
-   PAINEL ADMIN — Supermercados + Patrocínios
+   PAINEL ADMIN — lista de supermercados
    ============================================================ */
-let secaoAdmin="supermercados";
-function irAdmin(sec){ secaoAdmin=sec; telaAdmin(); }
-
 async function telaAdmin(){
   $("#conteudo").innerHTML=`<div class="vazio"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const [merc,prods,clientes,patroc]=await Promise.all([
-    fsAll("supermercados"),fsAll("produtos"),fsAll("clientes").catch(()=>[]),fsAll("patrocinados").catch(()=>[])
-  ]);
+  const merc=await fsAll("supermercados");
+  const prods=await fsAll("produtos");
+  const clientes=await fsAll("clientes");
+
   let html=`
-    <div class="barra-secoes">
-      <button class="${secaoAdmin==='supermercados'?'on':''}" onclick="irAdmin('supermercados')">🏪 Supermercados</button>
-      <button class="${secaoAdmin==='patrocinios'?'on pat':''}" onclick="irAdmin('patrocinios')">⭐ Ofertas patrocinadas</button>
+    <div class="titulo-secao">
+      <div><h2>Supermercados</h2><div class="sub">Cadastre lojas, importe catálogos e gerencie as mercadorias de cada uma</div></div>
+      <button class="btn" onclick="formSupermercado()">+ Novo supermercado</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="n">${merc.length}</div><div class="r">Supermercados</div></div>
       <div class="stat"><div class="n">${prods.length}</div><div class="r">Produtos no total</div></div>
       <div class="stat"><div class="n">${clientes.length}</div><div class="r">Clientes no site</div></div>
-      <div class="stat"><div class="n">${patroc.filter(p=>p.ativo).length}</div><div class="r">Patrocínios ativos</div></div>
-    </div>
-    <div id="admin-corpo"></div>`;
-  $("#conteudo").innerHTML=html;
-  if(secaoAdmin==="supermercados") renderSupermercados(merc,prods);
-  else renderPatrocinios(patroc);
-}
-
-function renderSupermercados(merc,prods){
-  const c=$("#admin-corpo");
-  let html=`<div class="titulo-secao">
-      <div><h2>Supermercados</h2><div class="sub">Cadastre lojas com CEP (geolocalização automática), importe catálogos e gerencie cada loja</div></div>
-      <button class="btn" onclick="formSupermercado()">+ Novo supermercado</button>
     </div>`;
-  if(!merc.length){ c.innerHTML=html+vazioHTML("🏪","Nenhum supermercado","Cadastre o primeiro para começar","formSupermercado()","+ Novo supermercado"); return; }
+
+  if(!merc.length){
+    html+=vazioHTML("🏪","Nenhum supermercado","Cadastre o primeiro para começar","formSupermercado()","+ Novo supermercado");
+    $("#conteudo").innerHTML=html; return;
+  }
   html+=`<div class="grade">`;
   for(const m of merc){
     const qtd=prods.filter(p=>p.supermercadoId===m.id).length;
     const promo=prods.filter(p=>p.supermercadoId===m.id&&p.emPromocao).length;
-    const temGeo=(m.lat!=null&&m.lng!=null);
     html+=`<div class="item-linha">
       <div class="info-merc" style="margin:0;box-shadow:none;padding:0;background:transparent;flex:1">
         <div class="av">${m.emoji||"🏬"}</div>
         <div class="corpo">
           <b>${esc(m.nome)}</b>
           <div>${esc(m.email)} · ${qtd} produto(s)${promo?` · ${promo} em promoção`:""}</div>
-          <div style="font-size:11.5px;opacity:.85">${esc(m.endereco||"Endereço não informado")}</div>
-          <div>${temGeo?`<span class="pin">📍 geolocalização ok</span>`:`<span style="color:var(--preco-promo);font-size:11.5px;font-weight:600">⚠ sem geolocalização</span>`}</div>
+          <div style="font-size:11.5px;opacity:.8">${esc(m.endereco||"")}</div>
         </div>
       </div>
       <div class="acoes">
@@ -482,81 +359,35 @@ function renderSupermercados(merc,prods){
       </div>
     </div>`;
   }
-  html+=`</div>`; c.innerHTML=html;
+  html+=`</div>`;
+  $("#conteudo").innerHTML=html;
 }
 
 async function formSupermercado(id=null){
   const ed=id?await fsGet("supermercados",id):null;
   abrirModal(ed?"Editar supermercado":"Novo supermercado",`
     <div class="campo"><label>Nome da loja</label><input id="f-nome" value="${esc(ed?.nome||"")}" placeholder="Ex.: Mercado Bom Preço"></div>
-    <div class="linha-campos">
-      <div class="campo"><label>E-mail de acesso</label><input id="f-email" type="email" value="${esc(ed?.email||"")}" placeholder="loja@email.com"></div>
-      <div class="campo"><label>Senha do painel da loja</label><input id="f-senha" value="${esc(ed?.senha||"")}" placeholder="Senha"></div>
-    </div>
+    <div class="campo"><label>E-mail de acesso</label><input id="f-email" type="email" value="${esc(ed?.email||"")}" placeholder="loja@email.com"></div>
+    <div class="campo"><label>Senha de acesso ao painel da loja</label><input id="f-senha" value="${esc(ed?.senha||"")}" placeholder="Senha"></div>
     <div class="linha-campos">
       <div class="campo"><label>CNPJ</label><input id="f-cnpj" value="${esc(ed?.cnpj||"")}" placeholder="00.000.000/0001-00"></div>
       <div class="campo"><label>Ícone</label><input id="f-emoji" value="${esc(ed?.emoji||"🏬")}" maxlength="2"></div>
     </div>
-    <div class="campo"><label>CEP</label><input id="f-cep" type="text" inputmode="numeric" autocomplete="off" value="${esc(ed?.cep||"")}" placeholder="00000-000" maxlength="9"></div>
-    <button class="btn fantasma full" id="f-buscar-cep" type="button" style="margin-bottom:12px">🔍 Buscar endereço e localização pelo CEP</button>
-    <div id="f-geo" class="geo-status ${ed?.lat!=null?'ok':'carregando'}">${ed?.lat!=null?`📍 Localização salva: ${(+ed.lat).toFixed(5)}, ${(+ed.lng).toFixed(5)}`:`Digite o CEP e clique em <b>Buscar CEP</b> para carregar endereço e localização.`}</div>
-    <div class="campo"><label>Endereço completo</label><input id="f-end" value="${esc(ed?.endereco||"")}" placeholder="Rua, nº — bairro, cidade/UF"></div>
-    <div class="linha-3">
-      <div class="campo"><label>Bairro</label><input id="f-bairro" value="${esc(ed?.bairro||"")}"></div>
-      <div class="campo"><label>Cidade</label><input id="f-cidade" value="${esc(ed?.cidade||"")}"></div>
-      <div class="campo"><label>UF</label><input id="f-uf" value="${esc(ed?.uf||"")}" maxlength="2"></div>
-    </div>
-    <details style="margin-bottom:6px"><summary style="cursor:pointer;font-size:12.5px;color:var(--cinza)">Ajustar coordenadas manualmente</summary>
-      <div class="linha-campos" style="margin-top:10px">
-        <div class="campo"><label>Latitude</label><input id="f-lat" value="${ed?.lat??""}" placeholder="-9.6498"></div>
-        <div class="campo"><label>Longitude</label><input id="f-lng" value="${ed?.lng??""}" placeholder="-35.7089"></div>
-      </div>
-    </details>
-    ${!ed?`<div class="ajuda">💡 Após cadastrar, abra a loja para <b>importar a lista de produtos</b> e cadastrar fotos.</div>`:""}
+    <div class="campo"><label>Endereço</label><input id="f-end" value="${esc(ed?.endereco||"")}" placeholder="Rua, nº — cidade/UF"></div>
+    ${!ed?`<div class="ajuda">💡 Após cadastrar, você poderá <b>importar a lista de produtos</b> da loja dentro de “Abrir loja”.</div>`:""}
   `,`
     <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
     <button class="btn" id="f-salvar">${ed?"Salvar":"Cadastrar loja"}</button>
   `);
-
-  const geoBox=$("#f-geo");
-  $("#f-cep").addEventListener("input",e=>{ const d=e.target.value.replace(/\D/g,"").slice(0,8); e.target.value=d.length>5?d.slice(0,5)+"-"+d.slice(5):d; });
-  $("#f-buscar-cep").onclick=async()=>{
-    const cep=$("#f-cep").value;
-    geoBox.className="geo-status carregando"; geoBox.innerHTML="Buscando CEP e localização…";
-    try{
-      const a=await buscarCEP(cep);
-      $("#f-bairro").value=a.bairro; $("#f-cidade").value=a.cidade; $("#f-uf").value=a.uf;
-      const endComposto=[a.logradouro,a.bairro,`${a.cidade}/${a.uf}`].filter(Boolean).join(", ");
-      if(!$("#f-end").value.trim()) $("#f-end").value=endComposto;
-      let geo=null;
-      try{ geo=await geocodificar(`${a.logradouro}, ${a.bairro}, ${a.cidade}, ${a.uf}, Brasil`); }catch(e){}
-      if(!geo){ try{ geo=await geocodificar(`${a.cep}, ${a.cidade}, ${a.uf}, Brasil`); }catch(e){} }
-      if(geo){
-        $("#f-lat").value=geo.lat; $("#f-lng").value=geo.lng;
-        geoBox.className="geo-status ok";
-        geoBox.innerHTML=`📍 Endereço e localização carregados: <b>${esc(a.cidade)}/${esc(a.uf)}</b> · ${geo.lat.toFixed(5)}, ${geo.lng.toFixed(5)}`;
-      }else{
-        geoBox.className="geo-status erro";
-        geoBox.innerHTML="Endereço encontrado, mas não consegui as coordenadas. Informe latitude/longitude manualmente (em “Ajustar coordenadas”).";
-      }
-    }catch(err){
-      geoBox.className="geo-status erro"; geoBox.innerHTML="⚠️ "+esc(err.message||err);
-    }
-  };
-
   $("#f-salvar").onclick=async()=>{
     const nome=$("#f-nome").value.trim(), email=$("#f-email").value.trim().toLowerCase(), senha=$("#f-senha").value;
     if(!nome||!email||!senha) return toast("Nome, e-mail e senha são obrigatórios.",true);
     const dups=(await fsWhere("supermercados","email",email)).filter(s=>s.id!==id);
     if(dups.length) return toast("Já existe loja com esse e-mail.",true);
-    const lat=parseFloat($("#f-lat").value), lng=parseFloat($("#f-lng").value);
-    const obj={nome,email,senha,cnpj:$("#f-cnpj").value.trim(),emoji:$("#f-emoji").value.trim()||"🏬",
-      endereco:$("#f-end").value.trim(),cep:$("#f-cep").value.replace(/\D/g,""),
-      bairro:$("#f-bairro").value.trim(),cidade:$("#f-cidade").value.trim(),uf:$("#f-uf").value.trim().toUpperCase(),
-      lat:isNaN(lat)?null:lat,lng:isNaN(lng)?null:lng};
+    const obj={nome,email,senha,cnpj:$("#f-cnpj").value.trim(),emoji:$("#f-emoji").value.trim()||"🏬",endereco:$("#f-end").value.trim()};
     $("#f-salvar").disabled=true;
     try{
-      if(ed){ obj.foto=ed.foto||""; await fsSet("supermercados",id,obj); toast("Supermercado atualizado."); fecharModal(); telaAdmin(); }
+      if(ed){ await fsSet("supermercados",id,obj); toast("Supermercado atualizado."); fecharModal(); telaAdmin(); }
       else{ const novoId=await fsAdd("supermercados",obj); toast("Loja cadastrada. Importe os produtos agora."); fecharModal(); painelLoja(novoId,true); }
     }catch(e){ console.error(e); toast("Erro ao salvar na nuvem.",true); $("#f-salvar").disabled=false; }
   };
@@ -572,81 +403,8 @@ function excluirSupermercado(id){
 }
 
 /* ============================================================
-   PATROCÍNIOS — ofertas patrocinadas (nível administração)
-   aparecem no rodapé do site do cliente (antes e depois do login)
-   ============================================================ */
-function renderPatrocinios(lista){
-  const c=$("#admin-corpo");
-  let html=`<div class="titulo-secao">
-      <div><h2>Ofertas patrocinadas</h2><div class="sub">Exibidas no rodapé do site do cliente, antes e depois do login</div></div>
-      <button class="btn patroc" onclick="formPatrocinio()">+ Nova oferta patrocinada</button>
-    </div>`;
-  if(!lista.length){ c.innerHTML=html+vazioHTML("⭐","Nenhuma oferta patrocinada","Crie um anúncio para destacar no rodapé do site","formPatrocinio()","+ Nova oferta patrocinada"); return; }
-  html+=`<div class="banners">`;
-  for(const p of (lista.sort((a,b)=>(b.criadoEm||0)-(a.criadoEm||0)))){
-    html+=`<div class="pcard">
-      <div class="ph" ${p.foto?`style="background-image:url('${p.foto}')"`:""}>${p.foto?"":"⭐"}</div>
-      <div class="bd"><h3>${esc(p.titulo)}</h3><p>${esc(p.descricao||"")}</p>
-        ${p.validade?`<div style="font-size:11.5px;color:var(--cinza);margin-top:2px">${esc(p.validade)}</div>`:""}
-        ${p.link?`<div style="font-size:11.5px;color:var(--patroc);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🔗 ${esc(p.link)}</div>`:""}
-      </div>
-      <div class="rod">
-        <span class="tag ${p.ativo?'on':'off'}">${p.ativo?'● Ativa':'○ Pausada'}</span>
-        <div style="display:flex;gap:6px">
-          <button class="btn fantasma peq" onclick="alternarPatroc('${p.id}')">${p.ativo?'Pausar':'Ativar'}</button>
-          <button class="btn fantasma peq" onclick="formPatrocinio('${p.id}')">Editar</button>
-          <button class="btn perigo peq" onclick="excluirPatroc('${p.id}')">🗑</button>
-        </div>
-      </div>
-    </div>`;
-  }
-  html+=`</div>`; c.innerHTML=html;
-}
-async function formPatrocinio(id=null){
-  const ed=id?await fsGet("patrocinados",id):null;
-  abrirModal(ed?"Editar oferta patrocinada":"Nova oferta patrocinada",`
-    <div class="campo"><label>Título</label><input id="pt-tit" value="${esc(ed?.titulo||"")}" placeholder="Ex.: Cartão Cesta+ — 5% de volta"></div>
-    <div class="campo"><label>Descrição</label><textarea id="pt-desc" placeholder="Texto do anúncio para o cliente">${esc(ed?.descricao||"")}</textarea></div>
-    <div class="linha-campos">
-      <div class="campo"><label>Validade / chamada</label><input id="pt-val" value="${esc(ed?.validade||"")}" placeholder="Ex.: Oferta contínua"></div>
-      <div class="campo"><label>Link (opcional)</label><input id="pt-link" value="${esc(ed?.link||"")}" placeholder="https://..."></div>
-    </div>
-    ${campoFotoHTML("pt-foto","Imagem do anúncio",ed?.foto||"","⭐")}
-    <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--gestao);font-weight:600;cursor:pointer;margin-top:4px">
-      <input id="pt-ativo" type="checkbox" ${ed?(ed.ativo?"checked":""):"checked"} style="width:18px;height:18px;accent-color:var(--patroc)"> Exibir no site do cliente (ativa)
-    </label>
-  `,`
-    <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
-    <button class="btn patroc" id="pt-salvar">${ed?"Salvar":"Publicar"}</button>
-  `);
-  ligarCampoFoto("pt-foto");
-  $("#pt-salvar").onclick=async()=>{
-    const titulo=$("#pt-tit").value.trim();
-    if(!titulo) return toast("Dê um título à oferta patrocinada.",true);
-    const obj={titulo,descricao:$("#pt-desc").value.trim(),validade:$("#pt-val").value.trim(),
-      link:$("#pt-link").value.trim(),foto:FOTOS["pt-foto"]||"",ativo:$("#pt-ativo").checked,
-      criadoEm:ed?.criadoEm||Date.now()};
-    $("#pt-salvar").disabled=true;
-    try{
-      if(ed){ await fsSet("patrocinados",id,obj); toast("Oferta patrocinada atualizada."); }
-      else{ await fsAdd("patrocinados",obj); toast("Oferta patrocinada publicada."); }
-      fecharModal(); telaAdmin();
-    }catch(e){ console.error(e); toast("Erro ao salvar.",true); $("#pt-salvar").disabled=false; }
-  };
-}
-async function alternarPatroc(id){
-  const p=await fsGet("patrocinados",id);
-  await fsUpd("patrocinados",id,{ativo:!p.ativo});
-  toast(!p.ativo?"Oferta ativada.":"Oferta pausada."); telaAdmin();
-}
-function excluirPatroc(id){
-  confirmar("Excluir oferta patrocinada","O anúncio deixa de aparecer no rodapé do site.",async()=>{
-    await fsDel("patrocinados",id); toast("Oferta patrocinada removida."); telaAdmin();
-  },"Excluir");
-}
-
-/* ============================================================
-   PAINEL DA LOJA — produtos (com fotos/importação) + ofertas
+   PAINEL DA LOJA — produtos (com importação) + ofertas
+   acessado pelo admin (ehAdmin=true) ou pela própria loja (false)
    ============================================================ */
 let lojaAtual=null, abaLoja="produtos";
 
@@ -657,17 +415,13 @@ async function painelLoja(id,ehAdmin){
   if(!m){ toast("Loja não encontrada.",true); return ehAdmin?telaAdmin():sair(); }
   const prods=(await fsWhere("produtos","supermercadoId",id)).sort((a,b)=>a.nome.localeCompare(b.nome));
   const ofertas=await fsWhere("ofertas","supermercadoId",id);
-  const temGeo=(m.lat!=null&&m.lng!=null);
 
   $("#conteudo").innerHTML=`
     ${ehAdmin?`<a class="voltar" onclick="telaAdmin()">‹ Voltar aos supermercados</a>`:""}
     <div class="info-merc">
       <div class="av">${m.emoji||"🏬"}</div>
-      <div class="corpo"><b>${esc(m.nome)}</b>
-        <div>${esc(m.endereco||"Endereço não informado")} · ${esc(m.email)}</div>
-        <div>${temGeo?`<span class="pin">📍 ${(+m.lat).toFixed(4)}, ${(+m.lng).toFixed(4)}</span>`:`<span style="color:var(--preco-promo);font-weight:600">⚠ sem geolocalização — edite e busque o CEP</span>`}</div>
-      </div>
-      <button class="btn fantasma peq" onclick="formSupermercado('${m.id}')">Editar dados</button>
+      <div class="corpo"><b>${esc(m.nome)}</b><div>${esc(m.endereco||"Endereço não informado")} · ${esc(m.email)}</div></div>
+      ${ehAdmin?`<button class="btn fantasma peq" onclick="formSupermercado('${m.id}')">Editar dados</button>`:""}
     </div>
     <div class="stats">
       <div class="stat"><div class="n">${prods.length}</div><div class="r">Produtos</div></div>
@@ -679,29 +433,34 @@ async function painelLoja(id,ehAdmin){
       <button class="${abaLoja==='ofertas'?'on':''}" onclick="irLoja('ofertas')">🏷️ Ofertas</button>
     </div>
     <div id="loja-corpo"></div>`;
+
   abaLoja==="produtos" ? renderProdutos(prods) : renderOfertas(ofertas);
 }
 function irLoja(aba){ abaLoja=aba; painelLoja(lojaAtual.id,lojaAtual.ehAdmin); }
 
 function renderProdutos(prods){
   const c=$("#loja-corpo");
-  let html=`<div class="titulo-secao">
-      <div><h2>Mercadorias da loja</h2><div class="sub">Catálogo individual — cadastre com foto, importe ou atualize itens</div></div>
+  let html=`
+    <div class="titulo-secao">
+      <div><h2>Mercadorias da loja</h2><div class="sub">Catálogo individual — adicione, importe ou atualize itens</div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn fantasma" onclick="importarProdutos()">⬆️ Importar lista</button>
         <button class="btn" onclick="formProduto()">+ Produto</button>
       </div>
     </div>`;
-  if(!prods.length){ c.innerHTML=html+vazioHTML("📦","Nenhuma mercadoria","Adicione um produto ou importe a lista completa de uma vez","importarProdutos()","⬆️ Importar lista"); return; }
+  if(!prods.length){
+    c.innerHTML=html+vazioHTML("📦","Nenhuma mercadoria","Adicione um produto ou importe a lista completa de uma vez","importarProdutos()","⬆️ Importar lista");
+    return;
+  }
+  // agrupa por categoria
   const grupos={}; prods.forEach(p=>{(grupos[p.categoria]??=[]).push(p);});
   for(const cat of Object.keys(grupos).sort()){
     html+=`<div style="margin:6px 0 9px;font-weight:700;color:var(--gestao);font-size:14px">${EMOJI_CAT[cat]||"📦"} ${esc(cat)} <span style="color:var(--cinza);font-weight:400">· ${grupos[cat].length}</span></div>`;
     html+=`<div class="grade" style="margin-bottom:18px">`;
     for(const p of grupos[cat]){
       const promo=p.emPromocao&&p.precoPromocional;
-      const fig=p.foto?`<img src="${p.foto}" class="item-foto" alt="">`:`<div style="font-size:28px">${p.emoji||"🛒"}</div>`;
       html+=`<div class="item-linha">
-        ${fig}
+        <div style="font-size:28px">${p.emoji||"🛒"}</div>
         <div class="corpo">
           <div class="nome">${esc(p.nome)}</div>
           <div class="meta">${promo?`<span class="tag promo">PROMO</span> <s style="color:var(--cinza)">${reais(p.preco)}</s> <b style="color:var(--preco-promo)">${reais(p.precoPromocional)}</b>`:`<b style="color:var(--gestao)">${reais(p.preco)}</b>`}</div>
@@ -724,9 +483,8 @@ async function formProduto(id=null){
     <div class="campo"><label>Nome do produto</label><input id="p-nome" value="${esc(ed?.nome||"")}" placeholder="Ex.: Arroz tipo 1 — 5kg"></div>
     <div class="linha-campos">
       <div class="campo"><label>Categoria</label><select id="p-cat">${CATEGORIAS.map(c=>`<option ${ed?.categoria===c?"selected":""}>${c}</option>`).join("")}</select></div>
-      <div class="campo"><label>Ícone (sem foto)</label><input id="p-emoji" value="${esc(ed?.emoji||"🛒")}" maxlength="2"></div>
+      <div class="campo"><label>Ícone</label><input id="p-emoji" value="${esc(ed?.emoji||"🛒")}" maxlength="2"></div>
     </div>
-    ${campoFotoHTML("p-foto","Foto do produto",ed?.foto||"","🛒")}
     <div class="linha-campos">
       <div class="campo"><label>Preço normal (R$)</label><input id="p-preco" type="number" step="0.01" min="0" value="${ed?.preco??""}" placeholder="0,00"></div>
       <div class="campo"><label>Preço promocional (R$)</label><input id="p-promo" type="number" step="0.01" min="0" value="${ed?.precoPromocional??""}" placeholder="opcional"></div>
@@ -738,14 +496,13 @@ async function formProduto(id=null){
     <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
     <button class="btn" id="p-salvar">${ed?"Salvar":"Adicionar"}</button>
   `);
-  ligarCampoFoto("p-foto");
   $("#p-salvar").onclick=async()=>{
     const nome=$("#p-nome").value.trim(), preco=parseFloat($("#p-preco").value);
     if(!nome||isNaN(preco)) return toast("Informe nome e preço.",true);
     const promoVal=parseFloat($("#p-promo").value), emPromo=$("#p-empromo").checked;
     if(emPromo&&(isNaN(promoVal)||promoVal<=0)) return toast("Defina o preço promocional para marcar promoção.",true);
     const obj={supermercadoId:lojaAtual.id,nome,categoria:$("#p-cat").value,emoji:$("#p-emoji").value.trim()||"🛒",
-      foto:FOTOS["p-foto"]||"",preco,precoPromocional:isNaN(promoVal)?null:promoVal,emPromocao:emPromo,unidade:"un"};
+      preco,precoPromocional:isNaN(promoVal)?null:promoVal,emPromocao:emPromo,unidade:"un"};
     $("#p-salvar").disabled=true;
     try{
       if(ed){ await fsSet("produtos",id,obj); toast("Produto atualizado."); }
@@ -754,6 +511,7 @@ async function formProduto(id=null){
     }catch(e){ console.error(e); toast("Erro ao salvar.",true); $("#p-salvar").disabled=false; }
   };
 }
+
 async function alternarPromo(id){
   const p=await fsGet("produtos",id);
   if(!p.emPromocao&&(!p.precoPromocional||p.precoPromocional<=0)){ toast("Defina um preço promocional editando o produto.",true); return formProduto(id); }
@@ -767,17 +525,18 @@ function excluirProduto(id){
   },"Excluir");
 }
 
-/* ===== IMPORTAÇÃO de lista de produtos (CSV) ===== */
+/* ===== IMPORTAÇÃO de lista de produtos (CSV colado ou arquivo) ===== */
 function importarProdutos(){
   abrirModal("Importar lista de produtos",`
     <div class="ajuda">
       Cole uma linha por produto, com colunas separadas por <code>;</code> (ou vírgula/tab):<br>
       <code>nome ; categoria ; preço ; preço promocional</code><br>
       As duas últimas colunas são opcionais. Cabeçalho é detectado automaticamente.
-      <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90</code>
+      <br><br>Exemplo:<br>
+      <code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90</code>
     </div>
     <div class="campo"><label>Colar lista (CSV)</label>
-      <textarea id="imp-txt" rows="8" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="Arroz tipo 1 — 5kg ; Mercearia ; 27,90 ; 22,90&#10;Feijão carioca — 1kg ; Mercearia ; 8,49&#10;Banana prata — kg ; Hortifruti ; 4,99 ; 3,49"></textarea>
+      <textarea id="imp-txt" rows="8" placeholder="Arroz tipo 1 — 5kg ; Mercearia ; 27,90 ; 22,90&#10;Feijão carioca — 1kg ; Mercearia ; 8,49&#10;Banana prata — kg ; Hortifruti ; 4,99 ; 3,49"></textarea>
     </div>
     <div class="campo"><label>Ou enviar arquivo .csv / .txt</label><input id="imp-arq" type="file" accept=".csv,.txt"></div>
     <div id="imp-previa"></div>
@@ -795,6 +554,7 @@ function importarProdutos(){
     if(!itens.length) return toast("Nada para importar. Confira o formato.",true);
     $("#imp-ok").disabled=true;
     try{
+      // grava em lote (mais rápido/atômico)
       const lote=writeBatch(db);
       itens.forEach(it=>{ lote.set(doc(collection(db,"produtos")),{...it,supermercadoId:lojaAtual.id}); });
       await lote.commit();
@@ -803,10 +563,12 @@ function importarProdutos(){
     }catch(e){ console.error(e); toast("Erro ao importar na nuvem.",true); $("#imp-ok").disabled=false; }
   };
 }
+
 function parseNum(s){
   if(s==null) return NaN;
   s=String(s).replace(/[r$\s]/gi,"").trim();
   if(!s) return NaN;
+  // trata "1.234,56" e "27,90" e "27.90"
   if(s.includes(",")) s=s.replace(/\./g,"").replace(",",".");
   return parseFloat(s);
 }
@@ -817,13 +579,14 @@ function parseCSVProdutos(texto){
     const cols=l.split(/[;,\t]/).map(c=>c.trim());
     const nome=cols[0];
     if(!nome) return;
+    // pula cabeçalho (primeira linha sem preço numérico válido na 3ª coluna)
     const precoCol=parseNum(cols[2]);
     if(i===0 && (/nome|produto|item/i.test(nome)) && isNaN(precoCol)) return;
     const preco=isNaN(precoCol)?0:precoCol;
     let cat=cols[1]||"Outros";
     cat=CATEGORIAS.find(c=>c.toLowerCase()===cat.toLowerCase())||"Outros";
     const promo=parseNum(cols[3]);
-    out.push({nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,foto:"",
+    out.push({nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,
       precoPromocional:isNaN(promo)?null:promo,emPromocao:!isNaN(promo)&&promo>0,unidade:"un"});
   });
   return out;
@@ -835,48 +598,46 @@ function previaImport(){
   box.innerHTML=`<div class="ajuda" style="background:#eef6f4">✓ <b>${itens.length}</b> produto(s) prontos: ${itens.slice(0,4).map(i=>esc(i.nome)).join(", ")}${itens.length>4?"…":""}</div>`;
 }
 
-/* ===== OFERTAS / banners (com foto) ===== */
+/* ===== OFERTAS / banners ===== */
 function renderOfertas(ofertas){
   const c=$("#loja-corpo");
-  let html=`<div class="titulo-secao">
-      <div><h2>Ofertas em destaque</h2><div class="sub">Viram banners no topo e rodapé do site do cliente</div></div>
+  let html=`
+    <div class="titulo-secao">
+      <div><h2>Ofertas em destaque</h2><div class="sub">Viram banners no topo do site do cliente</div></div>
       <button class="btn oferta" onclick="formOferta()">+ Nova oferta</button>
     </div>`;
   if(!ofertas.length){ c.innerHTML=html+vazioHTML("🏷️","Nenhuma oferta","Crie um banner para destacar suas promoções","formOferta()","+ Nova oferta"); return; }
   html+=`<div class="banners">`;
   for(const o of ofertas){
-    const foto=o.foto?`<div class="bg" style="background-image:url('${o.foto}')"></div>`:"";
-    html+=`<div class="banner ${o.cor==='verde'?'verde':''} ${o.foto?'com-foto':''}">
-      ${foto}
+    html+=`<div class="banner ${o.cor==='verde'?'verde':''}">
       <div class="ed">
-        <button class="btn fantasma peq" style="background:rgba(255,255,255,.9)" onclick="formOferta('${o.id}')">Editar</button>
-        <button class="btn peq" style="background:rgba(255,255,255,.9);color:var(--preco-promo)" onclick="excluirOferta('${o.id}')">🗑</button>
+        <button class="btn fantasma peq" style="background:rgba(255,255,255,.85)" onclick="formOferta('${o.id}')">Editar</button>
+        <button class="btn peq" style="background:rgba(255,255,255,.85);color:var(--preco-promo)" onclick="excluirOferta('${o.id}')">🗑</button>
       </div>
       <div class="et">Oferta</div><h3>${esc(o.titulo)}</h3><p>${esc(o.descricao||"")}</p>
       ${o.validade?`<span class="val">${esc(o.validade)}</span>`:""}
     </div>`;
   }
-  html+=`</div>`; c.innerHTML=html;
+  html+=`</div>`;
+  c.innerHTML=html;
 }
 async function formOferta(id=null){
   const ed=id?await fsGet("ofertas",id):null;
   abrirModal(ed?"Editar oferta":"Nova oferta",`
     <div class="campo"><label>Título</label><input id="o-tit" value="${esc(ed?.titulo||"")}" placeholder="Ex.: Semana da Mercearia"></div>
-    <div class="campo"><label>Descrição</label><textarea id="o-desc" placeholder="Resumo para o cliente">${esc(ed?.descricao||"")}</textarea></div>
+    <div class="campo"><label>Descrição</label><textarea id="o-desc" style="font-family:inherit;font-size:15px" placeholder="Resumo para o cliente">${esc(ed?.descricao||"")}</textarea></div>
     <div class="linha-campos">
       <div class="campo"><label>Validade</label><input id="o-val" value="${esc(ed?.validade||"")}" placeholder="Ex.: Até domingo"></div>
       <div class="campo"><label>Cor do banner</label><select id="o-cor"><option value="laranja" ${ed?.cor!=="verde"?"selected":""}>Laranja (promoção)</option><option value="verde" ${ed?.cor==="verde"?"selected":""}>Verde (hortifruti)</option></select></div>
     </div>
-    ${campoFotoHTML("o-foto","Imagem do banner (opcional)",ed?.foto||"","🏷️")}
   `,`
     <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
     <button class="btn oferta" id="o-salvar">${ed?"Salvar":"Publicar"}</button>
   `);
-  ligarCampoFoto("o-foto");
   $("#o-salvar").onclick=async()=>{
     const titulo=$("#o-tit").value.trim();
     if(!titulo) return toast("Dê um título à oferta.",true);
-    const obj={supermercadoId:lojaAtual.id,titulo,descricao:$("#o-desc").value.trim(),validade:$("#o-val").value.trim(),cor:$("#o-cor").value,foto:FOTOS["o-foto"]||""};
+    const obj={supermercadoId:lojaAtual.id,titulo,descricao:$("#o-desc").value.trim(),validade:$("#o-val").value.trim(),cor:$("#o-cor").value};
     $("#o-salvar").disabled=true;
     try{
       if(ed){ await fsSet("ofertas",id,obj); toast("Oferta atualizada."); }
@@ -891,16 +652,18 @@ function excluirOferta(id){
   },"Excluir");
 }
 
-/* ============================================================ INIT ============================================================ */
+/* ============================================================
+   INICIALIZAÇÃO
+   ============================================================ */
+// expõe handlers globais (type=module isola o escopo)
 Object.assign(window,{
-  selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
-  formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
-  formPatrocinio,alternarPatroc,excluirPatroc,fecharModal
+  selPapel,fazerLogin,sair,telaAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
+  formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,fecharModal
 });
 
 (async function init(){
   try{
-    const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
+    const ls=$("#link-site"); if(ls) ls.href="cesta-site.html";
     await semear();
     selPapel("admin");
     const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
@@ -919,6 +682,7 @@ Object.assign(window,{
   }
   document.getElementById("carregando").style.display="none";
 })();
+
 </script>
 </body>
 </html>
