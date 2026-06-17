@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -471,8 +472,12 @@ function entrarApp(){
 
 /* ====== seed inicial ====== */
 async function semear(){
+  if(localStorage.getItem("cesta_dados_semeados")) return;
   const merc=await fsAll("supermercados");
-  if(merc.length>0) return;
+  if(merc.length>0){
+    localStorage.setItem("cesta_dados_semeados", "true");
+    return;
+  }
   const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",whatsapp:"5582988887777",
     endereco:"Av. Fernandes Lima, 100 — Maceió/AL",cep:"57051160",bairro:"Farol",cidade:"Maceió",uf:"AL",lat:-9.6498,lng:-35.7089,emoji:"🏬"});
   const m2=await fsAdd("supermercados",{nome:"Hortifruti da Praça",email:"horti@loja.com",senha:"123",cnpj:"22.222.222/0001-22",whatsapp:"5582977776666",
@@ -493,6 +498,7 @@ async function semear(){
   await fsAdd("ofertas",{supermercadoId:m1,titulo:"Semana da Mercearia",descricao:"Itens essenciais com até 25% de desconto.",validade:"Até domingo",cor:"laranja",foto:""});
   await fsAdd("ofertas",{supermercadoId:m2,titulo:"Feira fresquinha",descricao:"Frutas e verduras selecionadas com preço especial.",validade:"Hoje e amanhã",cor:"verde",foto:""});
   await fsAdd("patrocinados",{titulo:"Cartão Cesta+",descricao:"Cadastre-se e ganhe 5% de volta nas suas compras.",link:"",validade:"Oferta contínua",foto:"",ativo:true,criadoEm:Date.now()});
+  localStorage.setItem("cesta_dados_semeados", "true");
 }
 
 /* ============================================================
