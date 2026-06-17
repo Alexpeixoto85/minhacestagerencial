@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -470,12 +469,18 @@ function entrarApp(){
   else painelLoja(sessao.id,false);
 }
 
-/* ====== seed inicial ====== */
+/* ====== seed inicial ======
+   Roda só uma vez na vida do banco: usa um marcador salvo na coleção
+   "config" (doc "seed") para nunca mais recriar os dados de exemplo,
+   mesmo que todos os supermercados sejam excluídos depois. */
 async function semear(){
-  if(localStorage.getItem("cesta_dados_semeados")) return;
+  let jaSemeado=null;
+  try{ jaSemeado=await fsGet("config","seed"); }catch(e){ console.error(e); }
+  if(jaSemeado) return;
   const merc=await fsAll("supermercados");
   if(merc.length>0){
-    localStorage.setItem("cesta_dados_semeados", "true");
+    // já existiam dados (de um uso anterior sem o marcador) — apenas grava o marcador e sai
+    try{ await fsSet("config","seed",{feito:true,em:Date.now()}); }catch(e){ console.error(e); }
     return;
   }
   const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",whatsapp:"5582988887777",
@@ -498,7 +503,7 @@ async function semear(){
   await fsAdd("ofertas",{supermercadoId:m1,titulo:"Semana da Mercearia",descricao:"Itens essenciais com até 25% de desconto.",validade:"Até domingo",cor:"laranja",foto:""});
   await fsAdd("ofertas",{supermercadoId:m2,titulo:"Feira fresquinha",descricao:"Frutas e verduras selecionadas com preço especial.",validade:"Hoje e amanhã",cor:"verde",foto:""});
   await fsAdd("patrocinados",{titulo:"Cartão Cesta+",descricao:"Cadastre-se e ganhe 5% de volta nas suas compras.",link:"",validade:"Oferta contínua",foto:"",ativo:true,criadoEm:Date.now()});
-  localStorage.setItem("cesta_dados_semeados", "true");
+  try{ await fsSet("config","seed",{feito:true,em:Date.now()}); }catch(e){ console.error(e); }
 }
 
 /* ============================================================
@@ -1280,13 +1285,17 @@ Object.assign(window,{
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
   formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
   filtrarMerc,confirmarPedido,recusarPedido,
-  aprovarComunidade,rejeitarComunidade,excluirComunidade,editarPrazoComunidade,salvarPrazoComunidade,gcCarMove,gcCarDot
+  aprovarComunidade,rejeitarComunidade,excluirComunidade,editarPrazoComunidade,salvarPrazoComunidade,gcCarMove,gcCarDot,
+  semear
 });
 
 (async function init(){
   try{
     const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
-    await semear();
+    // semear() foi desativado do carregamento automático: ele não roda mais sozinho,
+    // então os dados de exemplo nunca mais serão recriados. Para popular o banco
+    // manualmente (ex.: primeira instalação em um projeto novo), abra o console
+    // do navegador (F12) nesta página e digite: semear()
     selPapel("admin");
     const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
     if(s){
