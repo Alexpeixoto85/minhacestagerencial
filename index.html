@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -761,26 +759,41 @@ async function painelLoja(id,ehAdmin){
 function irLoja(aba){ abaLoja=aba; painelLoja(lojaAtual.id,lojaAtual.ehAdmin); }
 
 /* ====== PEDIDOS recebidos (tempo real) ====== */
+let _pedErro=null;
 function ligarPedidos(id){
   if(_pedLojaId===id && unsubPedidos) return;   // já ouvindo esta loja
   if(unsubPedidos){ unsubPedidos(); unsubPedidos=null; }
-  _pedLojaId=id; _pedAguardando=-1;
+  _pedLojaId=id; _pedAguardando=-1; _pedErro=null;
   unsubPedidos=onSnapshot(query(collection(db,"pedidos"),where("supermercadoId","==",id)),snap=>{
+    _pedErro=null;
     cachePedidos=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm||0)-(a.criadoEm||0));
     const aguardando=cachePedidos.filter(p=>(p.status||"aguardando")==="aguardando").length;
     if(_pedAguardando>=0 && aguardando>_pedAguardando) toast("📬 Novo pedido recebido!");
     _pedAguardando=aguardando;
     const b=$("#badge-ped"); if(b){ b.style.display=aguardando>0?"inline-flex":"none"; b.textContent=aguardando||""; }
     if(abaLoja==="pedidos" && lojaAtual && lojaAtual.id===id) renderPedidos();
-  },err=>{ console.warn("Sem permissão/erro ao ouvir pedidos:",err); });
+  },err=>{
+    console.error("Erro ao ouvir pedidos:",err);
+    _pedErro=err;
+    toast("Não foi possível carregar os pedidos: "+(err.code||err.message||err),true);
+    if(abaLoja==="pedidos" && lojaAtual && lojaAtual.id===id) renderPedidos();
+  });
 }
-function desligarPedidos(){ if(unsubPedidos){ unsubPedidos(); unsubPedidos=null; } _pedLojaId=null; _pedAguardando=0; cachePedidos=[]; }
+function desligarPedidos(){ if(unsubPedidos){ unsubPedidos(); unsubPedidos=null; } _pedLojaId=null; _pedAguardando=0; cachePedidos=[]; _pedErro=null; }
 
 function renderPedidos(){
   const c=$("#loja-corpo"); if(!c) return;
   let html=`<div class="titulo-secao">
       <div><h2>Pedidos recebidos</h2><div class="sub">Listas enviadas pelos clientes — confirme ou recuse e fale por WhatsApp</div></div>
     </div>`;
+  if(_pedErro){
+    const cod=_pedErro.code||"";
+    const dica = /permission|insufficient/i.test(cod+" "+_pedErro.message)
+      ? "Parece falta de permissão no Firestore. Publique as regras que liberam a coleção <b>pedidos</b> (read/create/update) no console do Firebase."
+      : "Verifique sua conexão e as regras do Firestore.";
+    c.innerHTML=html+`<div class="vazio"><div class="ic">⚠️</div><b style="color:var(--preco-promo);font-size:16px">Não foi possível carregar os pedidos</b><p>${esc(_pedErro.code||_pedErro.message||String(_pedErro))}</p><p style="margin-top:8px">${dica}</p></div>`;
+    return;
+  }
   if(!cachePedidos.length){ c.innerHTML=html+vazioHTML("📬","Nenhum pedido ainda","Quando um cliente finalizar a lista escolhendo sua loja, o pedido aparece aqui em tempo real."); return; }
   html+=`<div class="grade">`;
   for(const p of cachePedidos){
