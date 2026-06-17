@@ -305,6 +305,12 @@ function ytId(url){
   const m=String(url||"").match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
   return m?m[1]:null;
 }
+// "no Supermercado X" — evita duplicar quando o nome já indica o tipo de loja
+function refSuper(nome){
+  const n=String(nome||"").trim();
+  if(!n) return "Supermercado";
+  return /^(super\s?mercado|mercado|hortifruti|atacad|empório|emporio|mercearia|minimercado|mini\s?mercado)/i.test(n) ? n : "Supermercado "+n;
+}
 
 function toast(msg,erro=false){
   const t=document.createElement("div");
@@ -802,7 +808,7 @@ function renderPedidos(){
     const rotuloSt=st==="confirmado"?"✅ Confirmado":(st==="recusado"?"❌ Recusado":"⏳ Aguardando");
     const data=p.criadoEm?new Date(p.criadoEm).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
     const itens=(p.itens||[]).map(i=>`<div class="li"><span>${i.emoji||"🛒"} ${esc(i.nome)} ×${i.qtd}</span><span>${reais((i.preco||0)*(i.qtd||0))}</span></div>`).join("");
-    const msgConf=`Olá ${p.clienteNome||""}! Seu pedido na ${sessao.nome} foi CONFIRMADO ✅. Já estamos separando seus itens. Total: ${reais(p.total)}. Qualquer dúvida, é só responder aqui.`;
+    const msgConf=`Olá ${p.clienteNome||""}! Seu pedido no ${refSuper(sessao.nome)} foi CONFIRMADO ✅. Já estamos separando seus itens. Total: ${reais(p.total)}. Qualquer dúvida, é só responder aqui.`;
     const waCli=zapLink(p.clienteTelefone,msgConf);
     html+=`<div class="item-linha" style="flex-direction:column;align-items:stretch;gap:11px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
@@ -820,6 +826,7 @@ function renderPedidos(){
       <div class="acoes" style="flex-wrap:wrap;gap:8px">
         ${waCli?`<a class="btn verde peq" href="${waCli}" target="_blank" rel="noopener">📲 WhatsApp do cliente</a>`:`<span style="font-size:12px;color:var(--cinza)">Cliente sem WhatsApp</span>`}
         ${p.clienteEmail?`<a class="btn fantasma peq" href="mailto:${esc(p.clienteEmail)}">✉️ E-mail</a>`:""}
+        <button class="btn fantasma peq" onclick="baixarPedido('${p.id}')">⬇️ Baixar .txt</button>
         ${st==="aguardando"?`
           <button class="btn peq" style="background:#2f8152;color:#fff" onclick="confirmarPedido('${p.id}')">✅ Confirmar pedido</button>
           <button class="btn perigo peq" onclick="recusarPedido('${p.id}')">❌ Recusar</button>`:""}
@@ -854,6 +861,26 @@ async function recusarPedido(pedidoId){
     try{ await fsUpd("pedidos",pedidoId,{status:"recusado",atualizadoEm:Date.now()}); toast("Pedido recusado."); }
     catch(e){ console.error(e); toast("Erro ao recusar o pedido.",true); }
   },"Recusar pedido");
+}
+function baixarPedido(pedidoId){
+  const p=cachePedidos.find(x=>x.id===pedidoId); if(!p) return;
+  const d=p.criadoEm?new Date(p.criadoEm):new Date();
+  const stMap={aguardando:"Aguardando confirmação",confirmado:"Confirmado",recusado:"Recusado"};
+  let txt=`PEDIDO — Cesta\n`;
+  txt+=`Loja: ${sessao.nome}\n`;
+  txt+=`Cliente: ${p.clienteNome||"—"}\n`;
+  if(p.clienteTelefone) txt+=`Telefone: ${p.clienteTelefone}\n`;
+  if(p.clienteEmail) txt+=`E-mail: ${p.clienteEmail}\n`;
+  txt+=`Data: ${d.toLocaleString("pt-BR")}\n`;
+  txt+=`Status: ${stMap[p.status||"aguardando"]||p.status}\n`;
+  txt+="=".repeat(42)+"\n\n";
+  (p.itens||[]).forEach(i=>{ txt+=`  ${i.qtd}x ${i.nome}  —  ${reais((i.preco||0)*(i.qtd||0))}\n`; });
+  txt+="\n"+"=".repeat(42)+`\nTOTAL: ${reais(p.total)}\n`;
+  const blob=new Blob([txt],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob); const a=document.createElement("a");
+  a.href=url; a.download=`pedido-${String(p.clienteNome||"cliente").replace(/\s+/g,"-").toLowerCase()}-${d.toISOString().slice(0,10)}.txt`;
+  a.click(); URL.revokeObjectURL(url);
+  toast("Pedido baixado.");
 }
 
 function renderProdutos(prods){
@@ -1090,7 +1117,7 @@ Object.assign(window,{
   selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
   formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
-  filtrarMerc,confirmarPedido,recusarPedido
+  filtrarMerc,confirmarPedido,recusarPedido,baixarPedido
 });
 
 (async function init(){
