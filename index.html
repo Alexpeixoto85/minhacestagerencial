@@ -311,6 +311,8 @@ function refSuper(nome){
   if(!n) return "Supermercado";
   return /^(super\s?mercado|mercado|hortifruti|atacad|empório|emporio|mercearia|minimercado|mini\s?mercado)/i.test(n) ? n : "Supermercado "+n;
 }
+// chave de comparação de nome de produto (ignora maiúsc./acentos/espaços extras)
+function chaveNome(s){ return String(s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," "); }
 
 function toast(msg,erro=false){
   const t=document.createElement("div");
@@ -960,7 +962,18 @@ async function formProduto(id=null){
     $("#p-salvar").disabled=true;
     try{
       if(ed){ await fsSet("produtos",id,obj); toast("Produto atualizado."); }
-      else{ await fsAdd("produtos",obj); toast("Produto adicionado."); }
+      else{
+        // produto já cadastrado nesta loja? → só repõe o estoque
+        const existentes=await fsWhere("produtos","supermercadoId",lojaAtual.id);
+        const ja=existentes.find(p=>chaveNome(p.nome)===chaveNome(nome));
+        if(ja){
+          const novoEstoque=(Number(ja.estoque)||0)+(Number(obj.estoque)||0);
+          await fsUpd("produtos",ja.id,{estoque:novoEstoque});
+          toast(`"${ja.nome}" já existia — estoque reabastecido (${ja.estoque||0} → ${novoEstoque}).`);
+        }else{
+          await fsAdd("produtos",obj); toast("Produto adicionado.");
+        }
+      }
       fecharModal(); painelLoja(lojaAtual.id,lojaAtual.ehAdmin);
     }catch(e){ console.error(e); toast("Erro ao salvar.",true); $("#p-salvar").disabled=false; }
   };
@@ -987,6 +1000,7 @@ function importarProdutos(){
       Cole uma linha por produto, com colunas separadas por <code>;</code> (ou vírgula/tab):<br>
       <code>nome ; categoria ; preço ; preço promocional ; marca ; estoque</code><br>
       Da 4ª coluna em diante tudo é opcional. Cabeçalho é detectado automaticamente.
+      <br>💡 Se o produto já existir (mesmo nome), o estoque é <b>somado</b> ao atual e os demais dados são mantidos.
       <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90 ; Tio João ; 40</code>
     </div>
     <div class="campo"><label>Colar lista (CSV)</label>
@@ -1008,10 +1022,31 @@ function importarProdutos(){
     if(!itens.length) return toast("Nada para importar. Confira o formato.",true);
     $("#imp-ok").disabled=true;
     try{
+      // produtos já existentes na loja (para repor estoque em vez de duplicar)
+      const existentes=await fsWhere("produtos","supermercadoId",lojaAtual.id);
+      const mapaExist={}; existentes.forEach(p=>{ mapaExist[chaveNome(p.nome)]=p; });
+      // agrega itens repetidos dentro do próprio CSV (soma estoques)
+      const agreg={};
+      itens.forEach(it=>{
+        const k=chaveNome(it.nome);
+        if(agreg[k]) agreg[k].estoque=(Number(agreg[k].estoque)||0)+(Number(it.estoque)||0);
+        else agreg[k]={...it};
+      });
       const lote=writeBatch(db);
-      itens.forEach(it=>{ lote.set(doc(collection(db,"produtos")),{...it,supermercadoId:lojaAtual.id}); });
+      let novos=0, repostos=0;
+      for(const k of Object.keys(agreg)){
+        const it=agreg[k], ex=mapaExist[k];
+        if(ex){
+          const novoEstoque=(Number(ex.estoque)||0)+(Number(it.estoque)||0);
+          lote.update(doc(db,"produtos",ex.id),{estoque:novoEstoque}); // só o estoque
+          repostos++;
+        }else{
+          lote.set(doc(collection(db,"produtos")),{...it,supermercadoId:lojaAtual.id});
+          novos++;
+        }
+      }
       await lote.commit();
-      toast(`${itens.length} produto(s) importado(s).`);
+      toast(`Importação: ${novos} novo(s)${repostos?` · ${repostos} reabastecido(s)`:""}.`);
       fecharModal(); painelLoja(lojaAtual.id,lojaAtual.ehAdmin);
     }catch(e){ console.error(e); toast("Erro ao importar na nuvem.",true); $("#imp-ok").disabled=false; }
   };
