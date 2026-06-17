@@ -452,15 +452,27 @@ function selPapel(p){
 async function fazerLogin(){
   const user=$("#entrar-user").value.trim(), senha=$("#entrar-senha").value;
   if(!user||!senha) return toast("Preencha usuário e senha.",true);
-  if(papelSel==="admin"){
-    if(user===ADMIN.user&&senha===ADMIN.senha){ sessao={papel:"admin",id:0,nome:"Administrador"}; return entrarApp(); }
-    return toast("Usuário ou senha do admin incorretos.",true);
+  const btn=document.querySelector("#tela-portal .btn.full");
+  if(btn){ btn.disabled=true; btn.textContent="Entrando..."; }
+  try{
+    if(papelSel==="admin"){
+      if(user===ADMIN.user&&senha===ADMIN.senha){
+        sessao={papel:"admin",id:0,nome:"Administrador"};
+        entrarApp(); return;
+      }
+      return toast("Usuário ou senha do admin incorretos.",true);
+    }
+    const achados=await fsWhere("supermercados","email",user.toLowerCase());
+    const conta=achados[0];
+    if(!conta||conta.senha!==senha) return toast("E-mail ou senha incorretos.",true);
+    sessao={papel:"supermercado",id:conta.id,nome:conta.nome};
+    entrarApp();
+  }catch(e){
+    console.error(e);
+    toast("Erro de conexão: "+( e.message||String(e)),true);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent="Entrar"; }
   }
-  const achados=await fsWhere("supermercados","email",user.toLowerCase());
-  const conta=achados[0];
-  if(!conta||conta.senha!==senha) return toast("E-mail ou senha incorretos.",true);
-  sessao={papel:"supermercado",id:conta.id,nome:conta.nome};
-  entrarApp();
 }
 function sair(){
   sessao=null;
@@ -1219,25 +1231,49 @@ Object.assign(window,{
 });
 
 (async function init(){
-  try{
-    const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
-    await semear();
-    selPapel("admin");
-    const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
-    if(s){
-      if(s.papel==="admin"){ sessao=s; entrarApp(); }
-      else{ const loja=await fsGet("supermercados",s.id); if(loja){ sessao={papel:"supermercado",id:loja.id,nome:loja.nome}; entrarApp(); } else $("#tela-portal").classList.remove("escondido"); }
-    }else $("#tela-portal").classList.remove("escondido");
-  }catch(e){
-    console.error(e);
-    document.getElementById("carregando").innerHTML=`<div style="text-align:center;padding:30px;max-width:420px">
+  const carregando=document.getElementById("carregando");
+  const mostrarErro=msg=>{
+    carregando.innerHTML=`<div style="text-align:center;padding:30px;max-width:420px">
       <div style="font-size:40px">☁️⚠️</div>
       <h2 style="color:var(--gestao);margin:10px 0">Sem conexão com a nuvem</h2>
-      <p style="color:var(--cinza);font-size:14px">Verifique sua internet e as <b>regras do Firestore</b> (devem permitir leitura/escrita). Detalhe: ${esc(e.message||e)}</p>
+      <p style="color:var(--cinza);font-size:14px">Verifique sua internet e as <b>regras do Firestore</b>. Detalhe: ${esc(msg)}</p>
     </div>`;
-    return;
+  };
+
+  try{
+    const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
+
+    // semear é opcional — nunca deve travar o init
+    try{ await semear(); }catch(e){ console.warn("semear ignorado:",e); }
+
+    selPapel("admin");
+
+    const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
+    if(s){
+      if(s.papel==="admin"){
+        sessao=s;
+        carregando.style.display="none";
+        entrarApp();
+        return;
+      } else {
+        try{
+          const loja=await fsGet("supermercados",s.id);
+          if(loja){
+            sessao={papel:"supermercado",id:loja.id,nome:loja.nome};
+            carregando.style.display="none";
+            entrarApp();
+            return;
+          }
+        }catch(e){ console.warn("Falha ao restaurar sessão de loja:",e); }
+      }
+    }
+    // sem sessão válida — mostra portal
+    carregando.style.display="none";
+    $("#tela-portal").classList.remove("escondido");
+  }catch(e){
+    console.error(e);
+    mostrarErro(e.message||String(e));
   }
-  document.getElementById("carregando").style.display="none";
 })();
 </script>
 </body>
