@@ -1001,6 +1001,7 @@ function importarProdutos(){
       <code>nome ; categoria ; preço ; preço promocional ; marca ; estoque</code><br>
       Da 4ª coluna em diante tudo é opcional. Cabeçalho é detectado automaticamente.
       <br>💡 Se o produto já existir (mesmo nome), o estoque é <b>somado</b> ao atual e os demais dados são mantidos.
+      <br>🏷️ O preço promocional é importado, mas a promoção <b>não</b> é ativada sozinha — marque "★ Promo" no produto quando quiser exibi-la.
       <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90 ; Tio João ; 40</code>
     </div>
     <div class="campo"><label>Colar lista (CSV)</label>
@@ -1075,7 +1076,7 @@ function parseCSVProdutos(texto){
     const estoqueNum=parseInt(soDigitos(cols[5]),10);
     out.push({nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,foto:"",
       marca,estoque:isNaN(estoqueNum)?0:estoqueNum,
-      precoPromocional:isNaN(promo)?null:promo,emPromocao:!isNaN(promo)&&promo>0,unidade:"un"});
+      precoPromocional:isNaN(promo)?null:promo,emPromocao:false,unidade:"un"});
   });
   return out;
 }
