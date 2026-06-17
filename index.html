@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -100,6 +101,22 @@
     color: var(--cinza); background: #fff; border: 1.5px solid var(--linha); white-space: nowrap;
   }
   .barra-secoes button.on { background: var(--gestao); color: #fff; border-color: var(--gestao); box-shadow: 0 4px 12px rgba(38, 70, 83, 0.2); }
+  .barra-secoes button { position: relative; }
+  .barra-secoes button .badge {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:19px; height:19px; padding:0 5px; margin-left:7px;
+    background: var(--preco-promo,#d5341a); color:#fff; border-radius:10px;
+    font-size:11px; font-weight:800; vertical-align:middle;
+  }
+  .busca-cx { position: relative; margin-bottom: 18px; }
+  .busca-cx input {
+    width: 100%; padding: 12px 14px 12px 42px; border-radius: 12px;
+    border: 1.5px solid var(--linha); background: #fff; font-size: 14.5px; color: var(--gestao);
+  }
+  .busca-cx input:focus { outline: none; border-color: var(--gestao); box-shadow: 0 0 0 3px rgba(38,70,83,.12); }
+  .busca-cx .lupa { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--cinza); pointer-events: none; }
+  .yt-player iframe { width:100%; aspect-ratio:16/9; border:0; border-radius:12px; display:block; }
+  .li { display:flex; justify-content:space-between; gap:12px; font-size:13.5px; padding:3px 0; color:var(--gestao); }
 
   .titulo-secao { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
   .titulo-secao h2 { font-size: 26px; color: var(--gestao); }
@@ -242,7 +259,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc,
-  deleteDoc, query, where, writeBatch
+  deleteDoc, query, where, writeBatch, onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -272,6 +289,24 @@ const reais = v=>"R$ "+(Number(v)||0).toFixed(2).replace(".",",");
 function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 const EMOJI_CAT={Mercearia:"🛒",Hortifruti:"🥬","Laticínios":"🥛",Bebidas:"🥤",Limpeza:"🧼","Higiene":"🧴",Padaria:"🥖","Açougue":"🥩",Congelados:"🧊",Outros:"📦"};
 const CATEGORIAS=["Mercearia","Hortifruti","Laticínios","Bebidas","Limpeza","Higiene","Padaria","Açougue","Congelados","Outros"];
+
+/* ====== WhatsApp / telefone / YouTube ====== */
+function soDigitos(s){return String(s||"").replace(/\D/g,"");}
+// normaliza para o formato do wa.me (assume Brasil/55 quando faltar DDI)
+function zapNumero(tel){
+  let d=soDigitos(tel); if(!d) return null;
+  if(d.startsWith("0")) d=d.replace(/^0+/,"");
+  if(d.length<=11 && !d.startsWith("55")) d="55"+d;
+  return d;
+}
+function zapLink(tel,texto){
+  const d=zapNumero(tel); if(!d) return null;
+  return `https://wa.me/${d}?text=${encodeURIComponent(texto||"")}`;
+}
+function ytId(url){
+  const m=String(url||"").match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
 
 function toast(msg,erro=false){
   const t=document.createElement("div");
@@ -407,6 +442,7 @@ async function fazerLogin(){
 }
 function sair(){
   sessao=null;
+  desligarPedidos();
   try{ localStorage.removeItem("cesta_g_sessao"); }catch(e){}
   $("#topo").classList.add("escondido"); $("#conteudo").classList.add("escondido");
   $("#tela-portal").classList.remove("escondido");
@@ -426,9 +462,9 @@ function entrarApp(){
 async function semear(){
   const merc=await fsAll("supermercados");
   if(merc.length>0) return;
-  const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",
+  const m1=await fsAdd("supermercados",{nome:"Mercado Bom Preço",email:"bompreco@loja.com",senha:"123",cnpj:"11.111.111/0001-11",whatsapp:"5582988887777",
     endereco:"Av. Fernandes Lima, 100 — Maceió/AL",cep:"57051160",bairro:"Farol",cidade:"Maceió",uf:"AL",lat:-9.6498,lng:-35.7089,emoji:"🏬"});
-  const m2=await fsAdd("supermercados",{nome:"Hortifruti da Praça",email:"horti@loja.com",senha:"123",cnpj:"22.222.222/0001-22",
+  const m2=await fsAdd("supermercados",{nome:"Hortifruti da Praça",email:"horti@loja.com",senha:"123",cnpj:"22.222.222/0001-22",whatsapp:"5582977776666",
     endereco:"R. do Comércio, 45 — Centro, Maceió/AL",cep:"57020030",bairro:"Centro",cidade:"Maceió",uf:"AL",lat:-9.6660,lng:-35.7350,emoji:"🥬"});
   const prods=[
     [m1,"Arroz tipo 1 — 5kg","Mercearia",27.90,22.90,true],[m1,"Feijão carioca — 1kg","Mercearia",8.49,null,false],
@@ -442,7 +478,7 @@ async function semear(){
     [m2,"Ovos — dúzia","Laticínios",12.90,9.90,true],
   ];
   for(const [sid,nome,cat,preco,promo,emPromo] of prods)
-    await fsAdd("produtos",{supermercadoId:sid,nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,precoPromocional:promo,emPromocao:emPromo,unidade:"un",foto:""});
+    await fsAdd("produtos",{supermercadoId:sid,nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,precoPromocional:promo,emPromocao:emPromo,unidade:"un",foto:"",marca:"",estoque:50});
   await fsAdd("ofertas",{supermercadoId:m1,titulo:"Semana da Mercearia",descricao:"Itens essenciais com até 25% de desconto.",validade:"Até domingo",cor:"laranja",foto:""});
   await fsAdd("ofertas",{supermercadoId:m2,titulo:"Feira fresquinha",descricao:"Frutas e verduras selecionadas com preço especial.",validade:"Hoje e amanhã",cor:"verde",foto:""});
   await fsAdd("patrocinados",{titulo:"Cartão Cesta+",descricao:"Cadastre-se e ganhe 5% de volta nas suas compras.",link:"",validade:"Oferta contínua",foto:"",ativo:true,criadoEm:Date.now()});
@@ -476,23 +512,33 @@ async function telaAdmin(){
   else renderPatrocinios(patroc);
 }
 
+let _admMerc=[], _admProds=[];
 function renderSupermercados(merc,prods){
+  _admMerc=merc; _admProds=prods;
   const c=$("#admin-corpo");
   let html=`<div class="titulo-secao">
       <div><h2>Supermercados</h2><div class="sub">Cadastre lojas com CEP (geolocalização automática), importe catálogos e gerencie cada loja</div></div>
       <button class="btn" onclick="formSupermercado()">+ Novo supermercado</button>
     </div>`;
   if(!merc.length){ c.innerHTML=html+vazioHTML("🏪","Nenhum supermercado","Cadastre o primeiro para começar","formSupermercado()","+ Novo supermercado"); return; }
-  html+=`<div class="grade">`;
+  html+=`<div class="busca-cx"><span class="lupa">🔍</span><input id="busca-merc" placeholder="Buscar por nome, e-mail, cidade ou bairro..." oninput="filtrarMerc(this.value)"></div>`;
+  html+=`<div class="grade" id="merc-grade"></div>`;
+  c.innerHTML=html;
+  desenharGradeMerc(merc);
+}
+function desenharGradeMerc(merc){
+  const g=$("#merc-grade"); if(!g) return;
+  if(!merc.length){ g.innerHTML=vazioHTML("🔍","Nenhum supermercado encontrado","Tente outro termo de busca"); return; }
+  let html="";
   for(const m of merc){
-    const qtd=prods.filter(p=>p.supermercadoId===m.id).length;
-    const promo=prods.filter(p=>p.supermercadoId===m.id&&p.emPromocao).length;
+    const qtd=_admProds.filter(p=>p.supermercadoId===m.id).length;
+    const promo=_admProds.filter(p=>p.supermercadoId===m.id&&p.emPromocao).length;
     html+=`<div class="item-linha">
       <div class="info-merc" style="margin:0;box-shadow:none;padding:0;background:transparent;flex:1">
         <div class="av">${m.emoji||"🏬"}</div>
         <div class="corpo">
           <b>${esc(m.nome)}</b>
-          <div>${esc(m.email)} · ${qtd} produto(s)${promo?` · ${promo} em promoção`:""}</div>
+          <div>${esc(m.email)} · ${qtd} produto(s)${promo?` · ${promo} em promoção`:""}${m.whatsapp?` · 📲 ${esc(m.whatsapp)}`:""}</div>
           <div style="font-size:11.5px;opacity:.85">${esc(m.endereco||"Endereço não informado")} ${m.cep?`· CEP ${esc(m.cep.replace(/(\d{5})(\d{3})/,"$1-$2"))}`:""}</div>
         </div>
       </div>
@@ -503,7 +549,18 @@ function renderSupermercados(merc,prods){
       </div>
     </div>`;
   }
-  html+=`</div>`; c.innerHTML=html;
+  g.innerHTML=html;
+}
+function filtrarMerc(termo){
+  const t=String(termo||"").toLowerCase().trim();
+  if(!t) return desenharGradeMerc(_admMerc);
+  const filtrados=_admMerc.filter(m=>
+    (m.nome||"").toLowerCase().includes(t) ||
+    (m.email||"").toLowerCase().includes(t) ||
+    (m.cidade||"").toLowerCase().includes(t) ||
+    (m.bairro||"").toLowerCase().includes(t)
+  );
+  desenharGradeMerc(filtrados);
 }
 
 async function formSupermercado(id=null){
@@ -521,6 +578,8 @@ async function formSupermercado(id=null){
       <div class="campo"><label>CNPJ</label><input id="f-cnpj" value="${esc(ed?.cnpj||"")}" placeholder="00.000.000/0001-00"></div>
       <div class="campo"><label>Ícone</label><input id="f-emoji" value="${esc(ed?.emoji||"🏬")}" maxlength="2"></div>
     </div>
+    <div class="campo"><label>WhatsApp da loja (recebe os pedidos)</label>
+      <input id="f-zap" type="tel" value="${esc(ed?.whatsapp||"")}" placeholder="(82) 99999-9999"></div>
     <div class="campo"><label>CEP</label>
       <input id="f-cep" type="text" inputmode="numeric" autocomplete="off" value="${esc(ed?.cep?ed.cep.replace(/(\d{5})(\d{3})/,"$1-$2"):"")}" placeholder="00000-000" maxlength="9">
     </div>
@@ -561,6 +620,7 @@ async function formSupermercado(id=null){
       const enderecoManual=$("#f-end").value.trim();
       const endereco=enderecoManual ? `${enderecoManual} — ${bairro?bairro+", ":""}${cidade}/${uf}` : (ed?.endereco||"");
       const obj={nome,email,senha,cnpj:$("#f-cnpj").value.trim(),emoji:$("#f-emoji").value.trim()||"🏬",
+        whatsapp:soDigitos($("#f-zap").value),
         endereco,cep:cepLimpo,bairro,cidade,uf,lat,lng,enderecoRua:enderecoManual};
       if(ed){ obj.foto=ed.foto||""; await fsSet("supermercados",id,obj); toast("Supermercado atualizado."); fecharModal(); telaAdmin(); }
       else{ const novoId=await fsAdd("supermercados",obj); toast("Loja cadastrada. Importe os produtos agora."); fecharModal(); painelLoja(novoId,true); }
@@ -621,6 +681,8 @@ async function formPatrocinio(id=null){
       <div class="campo"><label>Link (opcional)</label><input id="pt-link" value="${esc(ed?.link||"")}" placeholder="https://..."></div>
     </div>
     ${campoFotoHTML("pt-foto","Imagem do anúncio",ed?.foto||"","⭐")}
+    <div class="campo"><label>Link do YouTube (opcional)</label>
+      <input id="pt-yt" value="${esc(ed?.youtube||"")}" placeholder="https://www.youtube.com/watch?v=..."></div>
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--gestao);font-weight:600;cursor:pointer;margin-top:4px">
       <input id="pt-ativo" type="checkbox" ${ed?(ed.ativo?"checked":""):"checked"} style="width:18px;height:18px;accent-color:var(--patroc)"> Exibir no site do cliente (ativa)
     </label>
@@ -633,7 +695,7 @@ async function formPatrocinio(id=null){
     const titulo=$("#pt-tit").value.trim();
     if(!titulo) return toast("Dê um título à oferta patrocinada.",true);
     const obj={titulo,descricao:$("#pt-desc").value.trim(),validade:$("#pt-val").value.trim(),
-      link:$("#pt-link").value.trim(),foto:FOTOS["pt-foto"]||"",ativo:$("#pt-ativo").checked,
+      link:$("#pt-link").value.trim(),foto:FOTOS["pt-foto"]||"",youtube:$("#pt-yt").value.trim(),ativo:$("#pt-ativo").checked,
       criadoEm:ed?.criadoEm||Date.now()};
     $("#pt-salvar").disabled=true;
     try{
@@ -660,6 +722,7 @@ function excluirPatroc(id){
    PAINEL DA LOJA — produtos (com fotos/importação) + ofertas
    ============================================================ */
 let lojaAtual=null, abaLoja="produtos";
+let cachePedidos=[], unsubPedidos=null, _pedLojaId=null, _pedAguardando=0;
 
 async function painelLoja(id,ehAdmin){
   lojaAtual={id,ehAdmin};
@@ -687,11 +750,98 @@ async function painelLoja(id,ehAdmin){
     <div class="barra-secoes">
       <button class="${abaLoja==='produtos'?'on':''}" onclick="irLoja('produtos')">📦 Mercadorias</button>
       <button class="${abaLoja==='ofertas'?'on':''}" onclick="irLoja('ofertas')">🏷️ Ofertas</button>
+      <button class="${abaLoja==='pedidos'?'on':''}" onclick="irLoja('pedidos')">📬 Pedidos<span class="badge" id="badge-ped" style="display:${_pedAguardando>0?'inline-flex':'none'}">${_pedAguardando>0?_pedAguardando:''}</span></button>
     </div>
     <div id="loja-corpo"></div>`;
-  abaLoja==="produtos" ? renderProdutos(prods) : renderOfertas(ofertas);
+  ligarPedidos(id);
+  if(abaLoja==="produtos") renderProdutos(prods);
+  else if(abaLoja==="ofertas") renderOfertas(ofertas);
+  else renderPedidos();
 }
 function irLoja(aba){ abaLoja=aba; painelLoja(lojaAtual.id,lojaAtual.ehAdmin); }
+
+/* ====== PEDIDOS recebidos (tempo real) ====== */
+function ligarPedidos(id){
+  if(_pedLojaId===id && unsubPedidos) return;   // já ouvindo esta loja
+  if(unsubPedidos){ unsubPedidos(); unsubPedidos=null; }
+  _pedLojaId=id; _pedAguardando=-1;
+  unsubPedidos=onSnapshot(query(collection(db,"pedidos"),where("supermercadoId","==",id)),snap=>{
+    cachePedidos=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.criadoEm||0)-(a.criadoEm||0));
+    const aguardando=cachePedidos.filter(p=>(p.status||"aguardando")==="aguardando").length;
+    if(_pedAguardando>=0 && aguardando>_pedAguardando) toast("📬 Novo pedido recebido!");
+    _pedAguardando=aguardando;
+    const b=$("#badge-ped"); if(b){ b.style.display=aguardando>0?"inline-flex":"none"; b.textContent=aguardando||""; }
+    if(abaLoja==="pedidos" && lojaAtual && lojaAtual.id===id) renderPedidos();
+  },err=>{ console.warn("Sem permissão/erro ao ouvir pedidos:",err); });
+}
+function desligarPedidos(){ if(unsubPedidos){ unsubPedidos(); unsubPedidos=null; } _pedLojaId=null; _pedAguardando=0; cachePedidos=[]; }
+
+function renderPedidos(){
+  const c=$("#loja-corpo"); if(!c) return;
+  let html=`<div class="titulo-secao">
+      <div><h2>Pedidos recebidos</h2><div class="sub">Listas enviadas pelos clientes — confirme ou recuse e fale por WhatsApp</div></div>
+    </div>`;
+  if(!cachePedidos.length){ c.innerHTML=html+vazioHTML("📬","Nenhum pedido ainda","Quando um cliente finalizar a lista escolhendo sua loja, o pedido aparece aqui em tempo real."); return; }
+  html+=`<div class="grade">`;
+  for(const p of cachePedidos){
+    const st=p.status||"aguardando";
+    const cor=st==="confirmado"?"#2f8152":(st==="recusado"?"var(--preco-promo)":"#b8761c");
+    const rotuloSt=st==="confirmado"?"✅ Confirmado":(st==="recusado"?"❌ Recusado":"⏳ Aguardando");
+    const data=p.criadoEm?new Date(p.criadoEm).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+    const itens=(p.itens||[]).map(i=>`<div class="li"><span>${i.emoji||"🛒"} ${esc(i.nome)} ×${i.qtd}</span><span>${reais((i.preco||0)*(i.qtd||0))}</span></div>`).join("");
+    const msgConf=`Olá ${p.clienteNome||""}! Seu pedido na ${sessao.nome} foi CONFIRMADO ✅. Já estamos separando seus itens. Total: ${reais(p.total)}. Qualquer dúvida, é só responder aqui.`;
+    const waCli=zapLink(p.clienteTelefone,msgConf);
+    html+=`<div class="item-linha" style="flex-direction:column;align-items:stretch;gap:11px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div>
+          <b style="font-size:16px;color:var(--gestao)">${esc(p.clienteNome||"Cliente")}</b>
+          <div style="font-size:12px;color:var(--cinza)">${data}</div>
+          <div style="font-size:12px;color:var(--cinza)">${p.clienteTelefone?`📞 ${esc(p.clienteTelefone)}`:""}${p.clienteEmail?` · ✉️ ${esc(p.clienteEmail)}`:""}</div>
+        </div>
+        <span class="tag" style="background:transparent;border:1.5px solid ${cor};color:${cor};font-weight:700">${rotuloSt}</span>
+      </div>
+      <div style="border-top:1px solid var(--linha);border-bottom:1px solid var(--linha);padding:7px 0">
+        ${itens}
+        <div class="li" style="font-weight:800;color:var(--gestao);margin-top:3px"><span>Total</span><span>${reais(p.total)}</span></div>
+      </div>
+      <div class="acoes" style="flex-wrap:wrap;gap:8px">
+        ${waCli?`<a class="btn verde peq" href="${waCli}" target="_blank" rel="noopener">📲 WhatsApp do cliente</a>`:`<span style="font-size:12px;color:var(--cinza)">Cliente sem WhatsApp</span>`}
+        ${p.clienteEmail?`<a class="btn fantasma peq" href="mailto:${esc(p.clienteEmail)}">✉️ E-mail</a>`:""}
+        ${st==="aguardando"?`
+          <button class="btn peq" style="background:#2f8152;color:#fff" onclick="confirmarPedido('${p.id}')">✅ Confirmar pedido</button>
+          <button class="btn perigo peq" onclick="recusarPedido('${p.id}')">❌ Recusar</button>`:""}
+      </div>
+    </div>`;
+  }
+  html+=`</div>`; c.innerHTML=html;
+}
+
+async function confirmarPedido(pedidoId){
+  const ped=cachePedidos.find(p=>p.id===pedidoId); if(!ped) return;
+  try{
+    const lote=writeBatch(db);
+    const avisos=[];
+    for(const it of (ped.itens||[])){
+      if(!it.produtoId) continue;
+      let prod=null; try{ prod=await fsGet("produtos",it.produtoId); }catch(e){}
+      if(prod && typeof prod.estoque==="number"){
+        const novo=prod.estoque-(Number(it.qtd)||0);
+        lote.update(doc(db,"produtos",it.produtoId),{estoque:novo});
+        if(novo<=0) avisos.push(`${it.nome} (${novo})`);
+      }
+    }
+    lote.update(doc(db,"pedidos",pedidoId),{status:"confirmado",atualizadoEm:Date.now()});
+    await lote.commit();
+    toast("Pedido confirmado. Estoque atualizado.");
+    if(avisos.length) toast("⚠ Estoque zerado/negativo: "+avisos.join(", "),true);
+  }catch(e){ console.error(e); toast("Erro ao confirmar o pedido.",true); }
+}
+async function recusarPedido(pedidoId){
+  confirmar("Recusar pedido","O cliente verá que o pedido foi recusado. Você ainda pode avisá-lo pelo WhatsApp depois.",async()=>{
+    try{ await fsUpd("pedidos",pedidoId,{status:"recusado",atualizadoEm:Date.now()}); toast("Pedido recusado."); }
+    catch(e){ console.error(e); toast("Erro ao recusar o pedido.",true); }
+  },"Recusar pedido");
+}
 
 function renderProdutos(prods){
   const c=$("#loja-corpo");
@@ -710,11 +860,14 @@ function renderProdutos(prods){
     for(const p of grupos[cat]){
       const promo=p.emPromocao&&p.precoPromocional;
       const fig=p.foto?`<img src="${p.foto}" class="item-foto" alt="">`:`<div style="font-size:28px">${p.emoji||"🛒"}</div>`;
+      const estoqueBaixo=(typeof p.estoque==="number"&&p.estoque<=5);
+      const extra=`${p.marca?`<span class="tag" style="background:#eef2f4;color:var(--gestao)">${esc(p.marca)}</span> `:""}${typeof p.estoque==="number"?`<span class="tag" style="background:${estoqueBaixo?"#fde8e8":"#e9f6ee"};color:${estoqueBaixo?"var(--preco-promo)":"#2f8152"}">📦 ${p.estoque} un</span>`:""}`;
       html+=`<div class="item-linha">
         ${fig}
         <div class="corpo">
           <div class="nome">${esc(p.nome)}</div>
           <div class="meta">${promo?`<span class="tag promo">PROMO</span> <s style="color:var(--cinza)">${reais(p.preco)}</s> <b style="color:var(--preco-promo)">${reais(p.precoPromocional)}</b>`:`<b style="color:var(--gestao)">${reais(p.preco)}</b>`}</div>
+          ${extra?`<div class="meta" style="margin-top:3px">${extra}</div>`:""}
         </div>
         <div class="acoes">
           <button class="btn ${p.emPromocao?'oferta':'fantasma'} peq" onclick="alternarPromo('${p.id}')">${p.emPromocao?'★':'☆'} Promo</button>
@@ -744,6 +897,10 @@ async function formProduto(id=null){
       <div class="campo"><label>Preço normal (R$)</label><input id="p-preco" type="number" step="0.01" min="0" value="${ed?.preco??""}" placeholder="0,00"></div>
       <div class="campo"><label>Preço promocional (R$)</label><input id="p-promo" type="number" step="0.01" min="0" value="${ed?.precoPromocional??""}" placeholder="opcional"></div>
     </div>
+    <div class="linha-campos">
+      <div class="campo"><label>Marca</label><input id="p-marca" value="${esc(ed?.marca||"")}" placeholder="Ex.: Tio João"></div>
+      <div class="campo"><label>Estoque (qtd. disponível)</label><input id="p-estoque" type="number" step="1" min="0" value="${ed?.estoque??""}" placeholder="0"></div>
+    </div>
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;color:var(--gestao);font-weight:600;cursor:pointer;margin-top:4px">
       <input id="p-empromo" type="checkbox" ${ed?.emPromocao?"checked":""} style="width:18px;height:18px;accent-color:var(--verde)"> Exibir como promoção no site
     </label>
@@ -758,6 +915,7 @@ async function formProduto(id=null){
     const promoVal=parseFloat($("#p-promo").value), emPromo=$("#p-empromo").checked;
     if(emPromo&&(isNaN(promoVal)||promoVal<=0)) return toast("Defina o preço promocional para marcar promoção.",true);
     const obj={supermercadoId:lojaAtual.id,nome,categoria:$("#p-cat").value,emoji:$("#p-emoji").value.trim()||"🛒",
+      marca:$("#p-marca").value.trim(),estoque:parseInt(soDigitos($("#p-estoque").value),10)||0,
       foto:FOTOS["p-foto"]||"",preco,precoPromocional:isNaN(promoVal)?null:promoVal,emPromocao:emPromo,unidade:"un"};
     $("#p-salvar").disabled=true;
     try{
@@ -787,12 +945,12 @@ function importarProdutos(){
   abrirModal("Importar lista de produtos",`
     <div class="ajuda">
       Cole uma linha por produto, com colunas separadas por <code>;</code> (ou vírgula/tab):<br>
-      <code>nome ; categoria ; preço ; preço promocional</code><br>
-      As duas últimas colunas são opcionais. Cabeçalho é detectado automaticamente.
-      <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90</code>
+      <code>nome ; categoria ; preço ; preço promocional ; marca ; estoque</code><br>
+      Da 4ª coluna em diante tudo é opcional. Cabeçalho é detectado automaticamente.
+      <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90 ; Tio João ; 40</code>
     </div>
     <div class="campo"><label>Colar lista (CSV)</label>
-      <textarea id="imp-txt" rows="8" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="Arroz tipo 1 — 5kg ; Mercearia ; 27,90 ; 22,90&#10;Feijão carioca — 1kg ; Mercearia ; 8,49&#10;Banana prata — kg ; Hortifruti ; 4,99 ; 3,49"></textarea>
+      <textarea id="imp-txt" rows="8" style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px" placeholder="Arroz tipo 1 — 5kg ; Mercearia ; 27,90 ; 22,90 ; Tio João ; 40&#10;Feijão carioca — 1kg ; Mercearia ; 8,49 ; ; Camil ; 30&#10;Banana prata — kg ; Hortifruti ; 4,99 ; 3,49 ; ; 100"></textarea>
     </div>
     <div class="campo"><label>Ou enviar arquivo .csv / .txt</label><input id="imp-arq" type="file" accept=".csv,.txt"></div>
     <div id="imp-previa"></div>
@@ -838,7 +996,10 @@ function parseCSVProdutos(texto){
     let cat=cols[1]||"Outros";
     cat=CATEGORIAS.find(c=>c.toLowerCase()===cat.toLowerCase())||"Outros";
     const promo=parseNum(cols[3]);
+    const marca=(cols[4]||"").trim();
+    const estoqueNum=parseInt(soDigitos(cols[5]),10);
     out.push({nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,foto:"",
+      marca,estoque:isNaN(estoqueNum)?0:estoqueNum,
       precoPromocional:isNaN(promo)?null:promo,emPromocao:!isNaN(promo)&&promo>0,unidade:"un"});
   });
   return out;
@@ -886,6 +1047,8 @@ async function formOferta(id=null){
       <div class="campo"><label>Cor do banner</label><select id="o-cor"><option value="laranja" ${ed?.cor!=="verde"?"selected":""}>Laranja (promoção)</option><option value="verde" ${ed?.cor==="verde"?"selected":""}>Verde (hortifruti)</option></select></div>
     </div>
     ${campoFotoHTML("o-foto","Imagem do banner (opcional)",ed?.foto||"","🏷️")}
+    <div class="campo"><label>Link do YouTube (opcional)</label>
+      <input id="o-yt" value="${esc(ed?.youtube||"")}" placeholder="https://www.youtube.com/watch?v=..."></div>
   `,`
     <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
     <button class="btn oferta" id="o-salvar">${ed?"Salvar":"Publicar"}</button>
@@ -894,7 +1057,7 @@ async function formOferta(id=null){
   $("#o-salvar").onclick=async()=>{
     const titulo=$("#o-tit").value.trim();
     if(!titulo) return toast("Dê um título à oferta.",true);
-    const obj={supermercadoId:lojaAtual.id,titulo,descricao:$("#o-desc").value.trim(),validade:$("#o-val").value.trim(),cor:$("#o-cor").value,foto:FOTOS["o-foto"]||""};
+    const obj={supermercadoId:lojaAtual.id,titulo,descricao:$("#o-desc").value.trim(),validade:$("#o-val").value.trim(),cor:$("#o-cor").value,foto:FOTOS["o-foto"]||"",youtube:$("#o-yt").value.trim()};
     $("#o-salvar").disabled=true;
     try{
       if(ed){ await fsSet("ofertas",id,obj); toast("Oferta atualizada."); }
@@ -913,7 +1076,8 @@ function excluirOferta(id){
 Object.assign(window,{
   selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
-  formPatrocinio,alternarPatroc,excluirPatroc,fecharModal
+  formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
+  filtrarMerc,confirmarPedido,recusarPedido
 });
 
 (async function init(){
