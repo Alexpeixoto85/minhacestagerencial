@@ -739,13 +739,31 @@ function excluirPatroc(id){
    para todos os clientes (e habilitarem comentários)
    ============================================================ */
 function cardOfertaComunidadeHTML(o,acoesHTML){
+  const imgs=(o.fotos&&o.fotos.length)?o.fotos:(o.foto?[o.foto]:[]);
+  let fotoSection="";
+  if(imgs.length===0){
+    fotoSection=`<div class="ph">📣</div>`;
+  } else if(imgs.length===1){
+    fotoSection=`<div class="ph" style="background-image:url('${esc(imgs[0])}')"></div>`;
+  } else {
+    const uid="gc-"+o.id.replace(/\W/g,"");
+    const dots=imgs.map((_,i)=>`<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${i===0?"#fff":"rgba(255,255,255,.4)"};cursor:pointer;transition:background .2s" id="${uid}-dot-${i}" onclick="gcCarDot('${uid}',${i},${imgs.length})"></span>`).join("");
+    const slides=imgs.map(img=>`<div style="flex:0 0 100%;height:100%;background:url('${esc(img)}') center/cover no-repeat"></div>`).join("");
+    fotoSection=`<div class="ph" style="padding:0;overflow:hidden;position:relative">
+      <div id="${uid}-track" data-idx="0" style="display:flex;height:100%;transition:transform .35s">${slides}</div>
+      <button onclick="gcCarMove('${uid}',${imgs.length},-1)" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;z-index:2">‹</button>
+      <button onclick="gcCarMove('${uid}',${imgs.length},1)" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:15px;cursor:pointer;z-index:2">›</button>
+      <div style="position:absolute;bottom:7px;left:0;right:0;display:flex;justify-content:center;gap:5px">${dots}</div>
+    </div>`;
+  }
   return `<div class="pcard">
-    <div class="ph" ${o.foto?`style="background-image:url('${esc(o.foto)}')"`:""}>${o.foto?"":"📣"}</div>
+    ${fotoSection}
     <div class="bd">
       <h3>${esc(o.titulo)}</h3>
       <p>${esc(o.descricao||"")}</p>
       <div style="font-size:11.5px;color:var(--cinza);margin-top:8px">Enviada por <b>${esc(o.clienteNome||"cliente")}</b> · ${new Date(o.criadoEm||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>
       ${o.validade?`<div style="font-size:11.5px;color:var(--cinza)">Validade: ${esc(o.validade)}</div>`:""}
+      ${o.prazo?(()=>{const d=new Date(o.prazo);const hoje=new Date();hoje.setHours(0,0,0,0);const expirou=d<hoje;return`<div style="font-size:11.5px;color:${expirou?"var(--preco-promo)":"#2f8152"};margin-top:4px;font-weight:600">${expirou?"⚠️ Prazo expirado: ":"📅 Prazo até: "}${d.toLocaleDateString("pt-BR")}</div>`})():""}
       ${o.motivo?`<div style="font-size:11.5px;color:var(--preco-promo);margin-top:6px">Motivo da rejeição: ${esc(o.motivo)}</div>`:""}
     </div>
     <div class="rod">${acoesHTML}</div>
@@ -775,17 +793,41 @@ function renderComunidadeAdmin(lista){
       const aprovada=o.status==="aprovada";
       return cardOfertaComunidadeHTML(o,`
         <span class="tag ${aprovada?'on':'off'}">${aprovada?'✅ Publicada para todos':'❌ Rejeitada'}</span>
-        ${aprovada?`<button class="btn perigo peq" onclick="excluirComunidade('${o.id}')">🗑 Remover do site</button>`:""}
+        ${aprovada?`
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn fantasma peq" onclick="editarPrazoComunidade('${o.id}','${o.prazo||""}')">📅 ${o.prazo?`Prazo: ${new Date(o.prazo+"T00:00:00").toLocaleDateString("pt-BR")}`:"Definir prazo"}</button>
+            <button class="btn perigo peq" onclick="excluirComunidade('${o.id}')">🗑 Remover do site</button>
+          </div>
+        `:""}
       `);
     }).join("")+`</div>`;
   }
   c.innerHTML=html;
 }
 async function aprovarComunidade(id){
-  try{
-    await fsUpd("ofertasComunidade",id,{status:"aprovada",motivo:"",analisadoEm:Date.now(),analisadoPor:sessao?.nome||"Administrador"});
-    toast("Oferta aprovada! Já está visível para todos os clientes."); telaAdmin();
-  }catch(e){ console.error(e); toast("Erro ao aprovar oferta.",true); }
+  // Abre modal para definir prazo antes de aprovar
+  const ed = await fsGet("ofertasComunidade", id).catch(()=>null);
+  abrirModal("Aprovar oferta da comunidade",`
+    <p style="color:var(--cinza);font-size:14px;margin-bottom:16px">Defina um prazo de exibição para esta oferta (opcional). Após o prazo ela deixa de aparecer automaticamente.</p>
+    <div class="campo"><label>Prazo de exibição (opcional)</label>
+      <input type="date" id="apr-prazo" value="${ed?.prazo||""}" min="${new Date().toISOString().slice(0,10)}" style="padding:12px 16px;border:1.5px solid var(--linha);border-radius:12px;width:100%;background:#fdfdfd;font-size:16px">
+    </div>
+    <div style="background:#eef6f4;border-radius:12px;padding:12px 16px;font-size:13.5px;color:var(--gestao)">
+      <b>${esc(ed?.titulo||"")}</b><br>
+      <span style="color:var(--cinza)">${esc(ed?.descricao||"")}</span>
+    </div>
+  `,`
+    <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
+    <button class="btn verde" id="apr-confirmar">✅ Aprovar e publicar</button>
+  `);
+  $("#apr-confirmar").onclick=async()=>{
+    const prazo=$("#apr-prazo").value||"";
+    $("#apr-confirmar").disabled=true;
+    try{
+      await fsUpd("ofertasComunidade",id,{status:"aprovada",motivo:"",prazo,analisadoEm:Date.now(),analisadoPor:sessao?.nome||"Administrador"});
+      toast("Oferta aprovada! Já está visível para todos os clientes."); fecharModal(); telaAdmin();
+    }catch(e){ console.error(e); toast("Erro ao aprovar oferta.",true); $("#apr-confirmar").disabled=false; }
+  };
 }
 function rejeitarComunidade(id){
   abrirModal("Rejeitar oferta da comunidade",`
@@ -803,6 +845,28 @@ function rejeitarComunidade(id){
       toast("Oferta rejeitada."); fecharModal(); telaAdmin();
     }catch(e){ console.error(e); toast("Erro ao rejeitar oferta.",true); $("#rej-confirmar").disabled=false; }
   };
+}
+function editarPrazoComunidade(id, prazoAtual){
+  abrirModal("Prazo da oferta da comunidade",`
+    <p style="color:var(--cinza);font-size:14px;margin-bottom:16px">Define até quando essa oferta ficará visível no site. Deixe em branco para exibir sem prazo determinado.</p>
+    <div class="campo"><label>Prazo de exibição</label>
+      <input type="date" id="ep-prazo" value="${prazoAtual||""}" min="${new Date().toISOString().slice(0,10)}" style="padding:12px 16px;border:1.5px solid var(--linha);border-radius:12px;width:100%;background:#fdfdfd;font-size:16px">
+    </div>
+    <p style="font-size:12px;color:var(--cinza);margin-top:4px">Ao atingir o prazo, a oferta deixará de aparecer automaticamente para os clientes.</p>
+  `,`
+    <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
+    <button class="btn perigo fantasma peq" onclick="salvarPrazoComunidade('${id}',true)" style="background:#fff5f5">Remover prazo</button>
+    <button class="btn verde" id="ep-salvar">Salvar prazo</button>
+  `);
+  document.querySelector("#modal-pe").style.gridTemplateColumns="1fr auto 1fr";
+  $("#ep-salvar").onclick=()=>salvarPrazoComunidade(id,false);
+}
+async function salvarPrazoComunidade(id, remover){
+  const prazo=remover?"":(($("#ep-prazo")?.value)||"");
+  try{
+    await fsUpd("ofertasComunidade",id,{prazo});
+    toast(remover?"Prazo removido.":"Prazo atualizado."); fecharModal(); telaAdmin();
+  }catch(e){ console.error(e); toast("Erro ao atualizar prazo.",true); }
 }
 function excluirComunidade(id){
   confirmar("Remover oferta do site","A oferta deixa de aparecer para os clientes, mas o histórico de quem a analisou é perdido.",async()=>{
@@ -1180,12 +1244,37 @@ function excluirOferta(id){
 }
 
 /* ============================================================ INIT ============================================================ */
+/* ====== Carrossel de imagens — painel gerencial ====== */
+function gcCarMove(uid, total, dir){
+  const track=document.getElementById(uid+"-track");
+  if(!track) return;
+  let idx=parseInt(track.dataset.idx||"0")+dir;
+  if(idx<0) idx=total-1;
+  if(idx>=total) idx=0;
+  track.dataset.idx=idx;
+  track.style.transform=`translateX(-${idx*100}%)`;
+  for(let i=0;i<total;i++){
+    const d=document.getElementById(uid+"-dot-"+i);
+    if(d) d.style.background=i===idx?"#fff":"rgba(255,255,255,.4)";
+  }
+}
+function gcCarDot(uid, idx, total){
+  const track=document.getElementById(uid+"-track");
+  if(!track) return;
+  track.dataset.idx=idx;
+  track.style.transform=`translateX(-${idx*100}%)`;
+  for(let i=0;i<total;i++){
+    const d=document.getElementById(uid+"-dot-"+i);
+    if(d) d.style.background=i===idx?"#fff":"rgba(255,255,255,.4)";
+  }
+}
+
 Object.assign(window,{
   selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
   formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
   filtrarMerc,confirmarPedido,recusarPedido,
-  aprovarComunidade,rejeitarComunidade,excluirComunidade
+  aprovarComunidade,rejeitarComunidade,excluirComunidade,editarPrazoComunidade,salvarPrazoComunidade,gcCarMove,gcCarDot
 });
 
 (async function init(){
