@@ -189,12 +189,30 @@
     .acoes button { flex: 1; min-width: calc(50% - 4px); }
   }
 
-  /* Classes de utilidade */
-  .escondido { display: none !important; }
-  .tag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-  .tag.on { background: #e6fcf5; color: #0ca678; }
-  .tag.off { background: #f1f3f5; color: #868e96; }
-  .tag.promo { background: #fff5f5; color: #fa5252; }
+  /* Ofertas de Clientes — Moderação */
+  .oc-card-mod{
+    background:#fff;border-radius:16px;border:1px solid var(--linha);
+    overflow:hidden;margin-bottom:16px;transition:all .2s;
+  }
+  .oc-card-mod:hover{box-shadow:var(--sombra)}
+  .oc-card-mod .oc-bann{
+    padding:16px 20px;color:#fff;position:relative;overflow:hidden;
+    background:linear-gradient(130deg,var(--verde-claro),var(--verde-escuro));
+    min-height:80px;display:flex;flex-direction:column;justify-content:flex-end;
+  }
+  .oc-card-mod .oc-bann .oc-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
+  .oc-card-mod .oc-bann .oc-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 20%,rgba(0,0,0,.65))}
+  .oc-card-mod .oc-bann>*{position:relative;z-index:1}
+  .oc-card-mod .oc-bann h4{font-size:17px;font-weight:700;margin-bottom:3px}
+  .oc-card-mod .oc-bann p{font-size:13px;opacity:.9}
+  .oc-card-mod .oc-inf{padding:14px 20px;border-bottom:1px solid var(--linha)}
+  .oc-card-mod .oc-inf .li{display:flex;gap:6px;font-size:13px;color:var(--cinza);margin-bottom:4px}
+  .oc-card-mod .oc-inf .li b{color:var(--gestao)}
+  .oc-card-mod .oc-rod{padding:14px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .badge-status{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+  .badge-status.pendente{background:#fff3cd;color:#856404}
+  .badge-status.aprovada{background:#d4edda;color:#155724}
+  .badge-status.recusada{background:#f8d7da;color:#721c24}
 
 </style>
 </head>
@@ -257,7 +275,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc,
-  deleteDoc, query, where, writeBatch, onSnapshot
+  deleteDoc, query, where, orderBy, writeBatch, onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -311,8 +329,6 @@ function refSuper(nome){
   if(!n) return "Supermercado";
   return /^(super\s?mercado|mercado|hortifruti|atacad|empório|emporio|mercearia|minimercado|mini\s?mercado)/i.test(n) ? n : "Supermercado "+n;
 }
-// chave de comparação de nome de produto (ignora maiúsc./acentos/espaços extras)
-function chaveNome(s){ return String(s||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," "); }
 
 function toast(msg,erro=false){
   const t=document.createElement("div");
@@ -498,24 +514,29 @@ function irAdmin(sec){ secaoAdmin=sec; telaAdmin(); }
 
 async function telaAdmin(){
   $("#conteudo").innerHTML=`<div class="vazio"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const [merc,prods,clientes,patroc]=await Promise.all([
-    fsAll("supermercados"),fsAll("produtos"),fsAll("clientes").catch(()=>[]),fsAll("patrocinados").catch(()=>[])
+  const [merc,prods,clientes,patroc,ofertasCli]=await Promise.all([
+    fsAll("supermercados"),fsAll("produtos"),fsAll("clientes").catch(()=>[]),fsAll("patrocinados").catch(()=>[]),
+    fsAll("ofertasClientes").catch(()=>[])
   ]);
+  const pendentes=ofertasCli.filter(o=>o.status==="pendente");
   let html=`
     <div class="barra-secoes">
       <button class="${secaoAdmin==='supermercados'?'on':''}" onclick="irAdmin('supermercados')">🏪 Supermercados</button>
       <button class="${secaoAdmin==='patrocinios'?'on pat':''}" onclick="irAdmin('patrocinios')">⭐ Ofertas patrocinadas</button>
+      <button class="${secaoAdmin==='moderacao'?'on':''}" onclick="irAdmin('moderacao')">🏷️ Ofertas de clientes${pendentes.length?`<span class="badge">${pendentes.length}</span>`:""}
+      </button>
     </div>
     <div class="stats">
       <div class="stat"><div class="n">${merc.length}</div><div class="r">Supermercados</div></div>
       <div class="stat"><div class="n">${prods.length}</div><div class="r">Produtos no total</div></div>
       <div class="stat"><div class="n">${clientes.length}</div><div class="r">Clientes no site</div></div>
-      <div class="stat"><div class="n">${patroc.filter(p=>p.ativo).length}</div><div class="r">Patrocínios ativos</div></div>
+      <div class="stat"><div class="n">${pendentes.length}</div><div class="r" style="${pendentes.length?'color:var(--oferta-forte);font-weight:800':''}">${pendentes.length?"⚠ ":''}Ofertas pendentes</div></div>
     </div>
     <div id="admin-corpo"></div>`;
   $("#conteudo").innerHTML=html;
   if(secaoAdmin==="supermercados") renderSupermercados(merc,prods);
-  else renderPatrocinios(patroc);
+  else if(secaoAdmin==="patrocinios") renderPatrocinios(patroc);
+  else renderModeracaoOfertas(ofertasCli);
 }
 
 let _admMerc=[], _admProds=[];
@@ -828,7 +849,6 @@ function renderPedidos(){
       <div class="acoes" style="flex-wrap:wrap;gap:8px">
         ${waCli?`<a class="btn verde peq" href="${waCli}" target="_blank" rel="noopener">📲 WhatsApp do cliente</a>`:`<span style="font-size:12px;color:var(--cinza)">Cliente sem WhatsApp</span>`}
         ${p.clienteEmail?`<a class="btn fantasma peq" href="mailto:${esc(p.clienteEmail)}">✉️ E-mail</a>`:""}
-        <button class="btn fantasma peq" onclick="baixarPedido('${p.id}')">⬇️ Baixar .txt</button>
         ${st==="aguardando"?`
           <button class="btn peq" style="background:#2f8152;color:#fff" onclick="confirmarPedido('${p.id}')">✅ Confirmar pedido</button>
           <button class="btn perigo peq" onclick="recusarPedido('${p.id}')">❌ Recusar</button>`:""}
@@ -863,26 +883,6 @@ async function recusarPedido(pedidoId){
     try{ await fsUpd("pedidos",pedidoId,{status:"recusado",atualizadoEm:Date.now()}); toast("Pedido recusado."); }
     catch(e){ console.error(e); toast("Erro ao recusar o pedido.",true); }
   },"Recusar pedido");
-}
-function baixarPedido(pedidoId){
-  const p=cachePedidos.find(x=>x.id===pedidoId); if(!p) return;
-  const d=p.criadoEm?new Date(p.criadoEm):new Date();
-  const stMap={aguardando:"Aguardando confirmação",confirmado:"Confirmado",recusado:"Recusado"};
-  let txt=`PEDIDO — Cesta\n`;
-  txt+=`Loja: ${sessao.nome}\n`;
-  txt+=`Cliente: ${p.clienteNome||"—"}\n`;
-  if(p.clienteTelefone) txt+=`Telefone: ${p.clienteTelefone}\n`;
-  if(p.clienteEmail) txt+=`E-mail: ${p.clienteEmail}\n`;
-  txt+=`Data: ${d.toLocaleString("pt-BR")}\n`;
-  txt+=`Status: ${stMap[p.status||"aguardando"]||p.status}\n`;
-  txt+="=".repeat(42)+"\n\n";
-  (p.itens||[]).forEach(i=>{ txt+=`  ${i.qtd}x ${i.nome}  —  ${reais((i.preco||0)*(i.qtd||0))}\n`; });
-  txt+="\n"+"=".repeat(42)+`\nTOTAL: ${reais(p.total)}\n`;
-  const blob=new Blob([txt],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob); const a=document.createElement("a");
-  a.href=url; a.download=`pedido-${String(p.clienteNome||"cliente").replace(/\s+/g,"-").toLowerCase()}-${d.toISOString().slice(0,10)}.txt`;
-  a.click(); URL.revokeObjectURL(url);
-  toast("Pedido baixado.");
 }
 
 function renderProdutos(prods){
@@ -962,18 +962,7 @@ async function formProduto(id=null){
     $("#p-salvar").disabled=true;
     try{
       if(ed){ await fsSet("produtos",id,obj); toast("Produto atualizado."); }
-      else{
-        // produto já cadastrado nesta loja? → só repõe o estoque
-        const existentes=await fsWhere("produtos","supermercadoId",lojaAtual.id);
-        const ja=existentes.find(p=>chaveNome(p.nome)===chaveNome(nome));
-        if(ja){
-          const novoEstoque=(Number(ja.estoque)||0)+(Number(obj.estoque)||0);
-          await fsUpd("produtos",ja.id,{estoque:novoEstoque});
-          toast(`"${ja.nome}" já existia — estoque reabastecido (${ja.estoque||0} → ${novoEstoque}).`);
-        }else{
-          await fsAdd("produtos",obj); toast("Produto adicionado.");
-        }
-      }
+      else{ await fsAdd("produtos",obj); toast("Produto adicionado."); }
       fecharModal(); painelLoja(lojaAtual.id,lojaAtual.ehAdmin);
     }catch(e){ console.error(e); toast("Erro ao salvar.",true); $("#p-salvar").disabled=false; }
   };
@@ -1000,8 +989,6 @@ function importarProdutos(){
       Cole uma linha por produto, com colunas separadas por <code>;</code> (ou vírgula/tab):<br>
       <code>nome ; categoria ; preço ; preço promocional ; marca ; estoque</code><br>
       Da 4ª coluna em diante tudo é opcional. Cabeçalho é detectado automaticamente.
-      <br>💡 Se o produto já existir (mesmo nome), o estoque é <b>somado</b> ao atual e os demais dados são mantidos.
-      <br>🏷️ O preço promocional é importado, mas a promoção <b>não</b> é ativada sozinha — marque "★ Promo" no produto quando quiser exibi-la.
       <br><br>Exemplo:<br><code>Arroz 5kg ; Mercearia ; 27,90 ; 22,90 ; Tio João ; 40</code>
     </div>
     <div class="campo"><label>Colar lista (CSV)</label>
@@ -1023,31 +1010,10 @@ function importarProdutos(){
     if(!itens.length) return toast("Nada para importar. Confira o formato.",true);
     $("#imp-ok").disabled=true;
     try{
-      // produtos já existentes na loja (para repor estoque em vez de duplicar)
-      const existentes=await fsWhere("produtos","supermercadoId",lojaAtual.id);
-      const mapaExist={}; existentes.forEach(p=>{ mapaExist[chaveNome(p.nome)]=p; });
-      // agrega itens repetidos dentro do próprio CSV (soma estoques)
-      const agreg={};
-      itens.forEach(it=>{
-        const k=chaveNome(it.nome);
-        if(agreg[k]) agreg[k].estoque=(Number(agreg[k].estoque)||0)+(Number(it.estoque)||0);
-        else agreg[k]={...it};
-      });
       const lote=writeBatch(db);
-      let novos=0, repostos=0;
-      for(const k of Object.keys(agreg)){
-        const it=agreg[k], ex=mapaExist[k];
-        if(ex){
-          const novoEstoque=(Number(ex.estoque)||0)+(Number(it.estoque)||0);
-          lote.update(doc(db,"produtos",ex.id),{estoque:novoEstoque}); // só o estoque
-          repostos++;
-        }else{
-          lote.set(doc(collection(db,"produtos")),{...it,supermercadoId:lojaAtual.id});
-          novos++;
-        }
-      }
+      itens.forEach(it=>{ lote.set(doc(collection(db,"produtos")),{...it,supermercadoId:lojaAtual.id}); });
       await lote.commit();
-      toast(`Importação: ${novos} novo(s)${repostos?` · ${repostos} reabastecido(s)`:""}.`);
+      toast(`${itens.length} produto(s) importado(s).`);
       fecharModal(); painelLoja(lojaAtual.id,lojaAtual.ehAdmin);
     }catch(e){ console.error(e); toast("Erro ao importar na nuvem.",true); $("#imp-ok").disabled=false; }
   };
@@ -1076,7 +1042,7 @@ function parseCSVProdutos(texto){
     const estoqueNum=parseInt(soDigitos(cols[5]),10);
     out.push({nome,categoria:cat,emoji:EMOJI_CAT[cat]||"🛒",preco,foto:"",
       marca,estoque:isNaN(estoqueNum)?0:estoqueNum,
-      precoPromocional:isNaN(promo)?null:promo,emPromocao:false,unidade:"un"});
+      precoPromocional:isNaN(promo)?null:promo,emPromocao:!isNaN(promo)&&promo>0,unidade:"un"});
   });
   return out;
 }
@@ -1148,12 +1114,108 @@ function excluirOferta(id){
   },"Excluir");
 }
 
-/* ============================================================ INIT ============================================================ */
+/* ============================================================
+   MODERAÇÃO DE OFERTAS DE CLIENTES
+   ============================================================ */
+function renderModeracaoOfertas(lista){
+  const c=$("#admin-corpo");
+  const ordenadas=[...lista].sort((a,b)=>{
+    // pendentes primeiro, depois por data decrescente
+    if(a.status==="pendente"&&b.status!=="pendente") return -1;
+    if(b.status==="pendente"&&a.status!=="pendente") return 1;
+    return (b.criadoEm||0)-(a.criadoEm||0);
+  });
+
+  let html=`<div class="titulo-secao">
+    <div><h2>Ofertas de Clientes</h2>
+      <div class="sub">Revise e aprove ou recuse ofertas submetidas pelos clientes antes que apareçam para todos</div>
+    </div>
+  </div>`;
+
+  if(!lista.length){
+    c.innerHTML=html+vazioHTML("🏷️","Nenhuma oferta submetida","Os clientes ainda não publicaram nenhuma oferta.");
+    return;
+  }
+
+  const pendentes=ordenadas.filter(o=>o.status==="pendente");
+  const outros=ordenadas.filter(o=>o.status!=="pendente");
+
+  if(pendentes.length){
+    html+=`<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">⚠️</span>
+      <span style="font-size:14px;font-weight:700;color:#856404">${pendentes.length} oferta(s) aguardando sua análise</span>
+    </div>`;
+  }
+
+  for(const o of ordenadas){
+    const data=o.criadoEm?new Date(o.criadoEm).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+    const bgStyle=o.foto?`background-image:url('${o.foto}')`:"";
+    html+=`<div class="oc-card-mod">
+      <div class="oc-bann">
+        ${o.foto?`<div class="oc-bg" style="${bgStyle}"></div>`:""}
+        <h4>${esc(o.titulo)}</h4>
+        <p>${esc(o.descricao||"")}</p>
+      </div>
+      <div class="oc-inf">
+        <div class="li"><span>👤 Cliente:</span><b>${esc(o.clienteNome||"—")}</b></div>
+        <div class="li"><span>📧 E-mail:</span><b>${esc(o.clienteEmail||"—")}</b></div>
+        ${o.local?`<div class="li"><span>📍 Local:</span><b>${esc(o.local)}</b></div>`:""}
+        ${o.validade?`<div class="li"><span>⏱ Validade:</span><b>${esc(o.validade)}</b></div>`:""}
+        <div class="li"><span>📅 Enviada em:</span><b>${data}</b></div>
+      </div>
+      <div class="oc-rod">
+        <span class="badge-status ${o.status}">${{pendente:"⏳ Pendente",aprovada:"✅ Aprovada",recusada:"❌ Recusada"}[o.status]||o.status}</span>
+        ${o.status==="pendente"?`
+          <button class="btn verde peq" onclick="aprovarOfertaCli('${o.id}')">✅ Aprovar</button>
+          <button class="btn perigo peq" onclick="recusarOfertaCli('${o.id}')">❌ Recusar</button>
+        `:`
+          ${o.status==="aprovada"?`<button class="btn perigo peq" onclick="recusarOfertaCli('${o.id}')">❌ Revogar aprovação</button>`:""}
+          ${o.status==="recusada"?`<button class="btn verde peq" onclick="aprovarOfertaCli('${o.id}')">✅ Aprovar mesmo assim</button>`:""}
+        `}
+        <button class="btn perigo peq" style="margin-left:auto" onclick="excluirOfertaCli('${o.id}')">🗑 Excluir</button>
+      </div>
+    </div>`;
+  }
+  c.innerHTML=html;
+}
+
+async function aprovarOfertaCli(id){
+  try{
+    await fsUpd("ofertasClientes",id,{status:"aprovada",moderadoEm:Date.now()});
+    toast("Oferta aprovada e publicada para os clientes!");
+    irAdmin("moderacao");
+  }catch(e){ console.error(e); toast("Erro ao aprovar oferta.",true); }
+}
+
+async function recusarOfertaCli(id){
+  try{
+    await fsUpd("ofertasClientes",id,{status:"recusada",moderadoEm:Date.now()});
+    toast("Oferta recusada.");
+    irAdmin("moderacao");
+  }catch(e){ console.error(e); toast("Erro ao recusar oferta.",true); }
+}
+
+function excluirOfertaCli(id){
+  confirmar("Excluir oferta","A oferta será removida permanentemente.",async()=>{
+    try{
+      await fsDel("ofertasClientes",id);
+      // também remove comentários relacionados
+      const coms=await fsWhere("comentariosOfertas","ofertaId",id);
+      for(const c of coms) await fsDel("comentariosOfertas",c.id);
+      toast("Oferta e comentários removidos."); irAdmin("moderacao");
+    }catch(e){ console.error(e); toast("Erro ao excluir.",true); }
+  },"Excluir");
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
 Object.assign(window,{
   selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
   formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
-  filtrarMerc,confirmarPedido,recusarPedido,baixarPedido
+  filtrarMerc,confirmarPedido,recusarPedido,
+  aprovarOfertaCli,recusarOfertaCli,excluirOfertaCli
 });
 
 (async function init(){
