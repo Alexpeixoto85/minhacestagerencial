@@ -72,7 +72,7 @@
   .linha-campos, .linha-3 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
   
   /* Portal de Login */
-  .portal { position: fixed; inset: 0; z-index: 500; background: var(--verde-papel); display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+  .portal { min-height: calc(100vh - 60px); display: flex; align-items: center; justify-content: center; padding: 20px; }
   .portal-caixa { width: 100%; max-width: 440px; }
   .portal-cabeca { text-align: center; margin-bottom: 30px; }
   .portal-cabeca .sel { 
@@ -189,30 +189,19 @@
     .acoes button { flex: 1; min-width: calc(50% - 4px); }
   }
 
-  /* Ofertas de Clientes — Moderação */
-  .oc-card-mod{
-    background:#fff;border-radius:16px;border:1px solid var(--linha);
-    overflow:hidden;margin-bottom:16px;transition:all .2s;
-  }
-  .oc-card-mod:hover{box-shadow:var(--sombra)}
-  .oc-card-mod .oc-bann{
-    padding:16px 20px;color:#fff;position:relative;overflow:hidden;
-    background:linear-gradient(130deg,var(--verde-claro),var(--verde-escuro));
-    min-height:80px;display:flex;flex-direction:column;justify-content:flex-end;
-  }
-  .oc-card-mod .oc-bann .oc-bg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:0}
-  .oc-card-mod .oc-bann .oc-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 20%,rgba(0,0,0,.65))}
-  .oc-card-mod .oc-bann>*{position:relative;z-index:1}
-  .oc-card-mod .oc-bann h4{font-size:17px;font-weight:700;margin-bottom:3px}
-  .oc-card-mod .oc-bann p{font-size:13px;opacity:.9}
-  .oc-card-mod .oc-inf{padding:14px 20px;border-bottom:1px solid var(--linha)}
-  .oc-card-mod .oc-inf .li{display:flex;gap:6px;font-size:13px;color:var(--cinza);margin-bottom:4px}
-  .oc-card-mod .oc-inf .li b{color:var(--gestao)}
-  .oc-card-mod .oc-rod{padding:14px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .badge-status{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
-  .badge-status.pendente{background:#fff3cd;color:#856404}
-  .badge-status.aprovada{background:#d4edda;color:#155724}
-  .badge-status.recusada{background:#f8d7da;color:#721c24}
+  /* Classes de utilidade */
+  .escondido { display: none !important; }
+  .tag { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+  .tag.on { background: #e6fcf5; color: #0ca678; }
+  .tag.off { background: #f1f3f5; color: #868e96; }
+  .tag.promo { background: #fff5f5; color: #fa5252; }
+  .tag.pendente { background: #fff4e0; color: #d4841a; }
+
+  .vazio { text-align: center; padding: 48px 20px; color: var(--cinza); }
+  .vazio .ic { font-size: 44px; opacity: .5; margin-bottom: 12px; }
+  .vazio b { display: block; font-size: 16px; color: var(--gestao); margin-bottom: 6px; }
+  .vazio p { font-size: 14px; }
+  .vazio .btn { margin-top: 18px; }
 
 </style>
 </head>
@@ -275,7 +264,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc,
-  deleteDoc, query, where, orderBy, writeBatch, onSnapshot
+  deleteDoc, query, where, writeBatch, onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -452,27 +441,15 @@ function selPapel(p){
 async function fazerLogin(){
   const user=$("#entrar-user").value.trim(), senha=$("#entrar-senha").value;
   if(!user||!senha) return toast("Preencha usuário e senha.",true);
-  const btn=document.querySelector("#tela-portal .btn.full");
-  if(btn){ btn.disabled=true; btn.textContent="Entrando..."; }
-  try{
-    if(papelSel==="admin"){
-      if(user===ADMIN.user&&senha===ADMIN.senha){
-        sessao={papel:"admin",id:0,nome:"Administrador"};
-        entrarApp(); return;
-      }
-      return toast("Usuário ou senha do admin incorretos.",true);
-    }
-    const achados=await fsWhere("supermercados","email",user.toLowerCase());
-    const conta=achados[0];
-    if(!conta||conta.senha!==senha) return toast("E-mail ou senha incorretos.",true);
-    sessao={papel:"supermercado",id:conta.id,nome:conta.nome};
-    entrarApp();
-  }catch(e){
-    console.error(e);
-    toast("Erro de conexão: "+( e.message||String(e)),true);
-  }finally{
-    if(btn){ btn.disabled=false; btn.textContent="Entrar"; }
+  if(papelSel==="admin"){
+    if(user===ADMIN.user&&senha===ADMIN.senha){ sessao={papel:"admin",id:0,nome:"Administrador"}; return entrarApp(); }
+    return toast("Usuário ou senha do admin incorretos.",true);
   }
+  const achados=await fsWhere("supermercados","email",user.toLowerCase());
+  const conta=achados[0];
+  if(!conta||conta.senha!==senha) return toast("E-mail ou senha incorretos.",true);
+  sessao={papel:"supermercado",id:conta.id,nome:conta.nome};
+  entrarApp();
 }
 function sair(){
   sessao=null;
@@ -526,29 +503,28 @@ function irAdmin(sec){ secaoAdmin=sec; telaAdmin(); }
 
 async function telaAdmin(){
   $("#conteudo").innerHTML=`<div class="vazio"><div class="spinner" style="margin:0 auto"></div></div>`;
-  const [merc,prods,clientes,patroc,ofertasCli]=await Promise.all([
-    fsAll("supermercados"),fsAll("produtos"),fsAll("clientes").catch(()=>[]),fsAll("patrocinados").catch(()=>[]),
-    fsAll("ofertasClientes").catch(()=>[])
+  const [merc,prods,clientes,patroc,comunidade]=await Promise.all([
+    fsAll("supermercados"),fsAll("produtos"),fsAll("clientes").catch(()=>[]),fsAll("patrocinados").catch(()=>[]),fsAll("ofertasComunidade").catch(()=>[])
   ]);
-  const pendentes=ofertasCli.filter(o=>o.status==="pendente");
+  const pendentes=comunidade.filter(o=>(o.status||"pendente")==="pendente").length;
   let html=`
     <div class="barra-secoes">
       <button class="${secaoAdmin==='supermercados'?'on':''}" onclick="irAdmin('supermercados')">🏪 Supermercados</button>
       <button class="${secaoAdmin==='patrocinios'?'on pat':''}" onclick="irAdmin('patrocinios')">⭐ Ofertas patrocinadas</button>
-      <button class="${secaoAdmin==='moderacao'?'on':''}" onclick="irAdmin('moderacao')">🏷️ Ofertas de clientes${pendentes.length?`<span class="badge">${pendentes.length}</span>`:""}
-      </button>
+      <button class="${secaoAdmin==='comunidade'?'on':''}" onclick="irAdmin('comunidade')">📣 Ofertas da comunidade${pendentes?`<span class="badge">${pendentes}</span>`:""}</button>
     </div>
     <div class="stats">
       <div class="stat"><div class="n">${merc.length}</div><div class="r">Supermercados</div></div>
       <div class="stat"><div class="n">${prods.length}</div><div class="r">Produtos no total</div></div>
       <div class="stat"><div class="n">${clientes.length}</div><div class="r">Clientes no site</div></div>
-      <div class="stat"><div class="n">${pendentes.length}</div><div class="r" style="${pendentes.length?'color:var(--oferta-forte);font-weight:800':''}">${pendentes.length?"⚠ ":''}Ofertas pendentes</div></div>
+      <div class="stat"><div class="n">${patroc.filter(p=>p.ativo).length}</div><div class="r">Patrocínios ativos</div></div>
+      <div class="stat"><div class="n">${pendentes}</div><div class="r">Ofertas p/ analisar</div></div>
     </div>
     <div id="admin-corpo"></div>`;
   $("#conteudo").innerHTML=html;
   if(secaoAdmin==="supermercados") renderSupermercados(merc,prods);
-  else if(secaoAdmin==="patrocinios") renderPatrocinios(patroc);
-  else renderModeracaoOfertas(ofertasCli);
+  else if(secaoAdmin==="comunidade") renderComunidadeAdmin(comunidade);
+  else renderPatrocinios(patroc);
 }
 
 let _admMerc=[], _admProds=[];
@@ -755,6 +731,83 @@ function excluirPatroc(id){
   confirmar("Excluir oferta patrocinada","O anúncio deixa de aparecer no rodapé do site.",async()=>{
     await fsDel("patrocinados",id); toast("Oferta patrocinada removida."); telaAdmin();
   },"Excluir");
+}
+
+/* ============================================================
+   OFERTAS DA COMUNIDADE — cadastradas pelos clientes
+   precisam de aprovação do administrador antes de aparecerem
+   para todos os clientes (e habilitarem comentários)
+   ============================================================ */
+function cardOfertaComunidadeHTML(o,acoesHTML){
+  return `<div class="pcard">
+    <div class="ph" ${o.foto?`style="background-image:url('${esc(o.foto)}')"`:""}>${o.foto?"":"📣"}</div>
+    <div class="bd">
+      <h3>${esc(o.titulo)}</h3>
+      <p>${esc(o.descricao||"")}</p>
+      <div style="font-size:11.5px;color:var(--cinza);margin-top:8px">Enviada por <b>${esc(o.clienteNome||"cliente")}</b> · ${new Date(o.criadoEm||Date.now()).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</div>
+      ${o.validade?`<div style="font-size:11.5px;color:var(--cinza)">Validade: ${esc(o.validade)}</div>`:""}
+      ${o.motivo?`<div style="font-size:11.5px;color:var(--preco-promo);margin-top:6px">Motivo da rejeição: ${esc(o.motivo)}</div>`:""}
+    </div>
+    <div class="rod">${acoesHTML}</div>
+  </div>`;
+}
+function renderComunidadeAdmin(lista){
+  const c=$("#admin-corpo");
+  const pendentes=lista.filter(o=>(o.status||"pendente")==="pendente").sort((a,b)=>(a.criadoEm||0)-(b.criadoEm||0));
+  const analisadas=lista.filter(o=>(o.status||"pendente")!=="pendente").sort((a,b)=>(b.analisadoEm||0)-(a.analisadoEm||0));
+  let html=`<div class="titulo-secao">
+      <div><h2>Ofertas da comunidade</h2><div class="sub">Cadastradas pelos próprios clientes. Aprove para publicar a todos os clientes cadastrados ou rejeite informando o motivo.</div></div>
+    </div>`;
+  html+=`<h3 style="font-size:16px;color:var(--gestao);margin-bottom:14px">⏳ Pendentes de análise (${pendentes.length})</h3>`;
+  if(!pendentes.length){
+    html+=vazioHTML("📣","Nenhuma oferta pendente","As novas ofertas enviadas por clientes aparecerão aqui para análise");
+  }else{
+    html+=`<div class="banners">`+pendentes.map(o=>cardOfertaComunidadeHTML(o,`
+      <span class="tag pendente">⏳ Pendente</span>
+      <div class="botoes">
+        <button class="btn verde peq" onclick="aprovarComunidade('${o.id}')">✅ Aprovar</button>
+        <button class="btn perigo peq" onclick="rejeitarComunidade('${o.id}')">❌ Rejeitar</button>
+      </div>
+    `)).join("")+`</div>`;
+  }
+  if(analisadas.length){
+    html+=`<h3 style="font-size:16px;color:var(--gestao);margin:32px 0 14px">📋 Já analisadas</h3><div class="banners">`+analisadas.map(o=>{
+      const aprovada=o.status==="aprovada";
+      return cardOfertaComunidadeHTML(o,`
+        <span class="tag ${aprovada?'on':'off'}">${aprovada?'✅ Publicada para todos':'❌ Rejeitada'}</span>
+        ${aprovada?`<button class="btn perigo peq" onclick="excluirComunidade('${o.id}')">🗑 Remover do site</button>`:""}
+      `);
+    }).join("")+`</div>`;
+  }
+  c.innerHTML=html;
+}
+async function aprovarComunidade(id){
+  try{
+    await fsUpd("ofertasComunidade",id,{status:"aprovada",motivo:"",analisadoEm:Date.now(),analisadoPor:sessao?.nome||"Administrador"});
+    toast("Oferta aprovada! Já está visível para todos os clientes."); telaAdmin();
+  }catch(e){ console.error(e); toast("Erro ao aprovar oferta.",true); }
+}
+function rejeitarComunidade(id){
+  abrirModal("Rejeitar oferta da comunidade",`
+    <p style="color:var(--cinza);font-size:14.5px;margin-bottom:14px">Explique brevemente por que essa oferta não será publicada. O cliente que a enviou poderá ver esse motivo.</p>
+    <div class="campo"><label>Motivo (opcional)</label><textarea id="rej-motivo" placeholder="Ex.: Conteúdo incompleto ou não verificável"></textarea></div>
+  `,`
+    <button class="btn fantasma" onclick="fecharModal()">Cancelar</button>
+    <button class="btn perigo" id="rej-confirmar">Rejeitar oferta</button>
+  `);
+  $("#rej-confirmar").onclick=async()=>{
+    const motivo=$("#rej-motivo").value.trim();
+    $("#rej-confirmar").disabled=true;
+    try{
+      await fsUpd("ofertasComunidade",id,{status:"rejeitada",motivo,analisadoEm:Date.now(),analisadoPor:sessao?.nome||"Administrador"});
+      toast("Oferta rejeitada."); fecharModal(); telaAdmin();
+    }catch(e){ console.error(e); toast("Erro ao rejeitar oferta.",true); $("#rej-confirmar").disabled=false; }
+  };
+}
+function excluirComunidade(id){
+  confirmar("Remover oferta do site","A oferta deixa de aparecer para os clientes, mas o histórico de quem a analisou é perdido.",async()=>{
+    await fsDel("ofertasComunidade",id); toast("Oferta removida."); telaAdmin();
+  },"Remover");
 }
 
 /* ============================================================
@@ -1126,154 +1179,35 @@ function excluirOferta(id){
   },"Excluir");
 }
 
-/* ============================================================
-   MODERAÇÃO DE OFERTAS DE CLIENTES
-   ============================================================ */
-function renderModeracaoOfertas(lista){
-  const c=$("#admin-corpo");
-  const ordenadas=[...lista].sort((a,b)=>{
-    // pendentes primeiro, depois por data decrescente
-    if(a.status==="pendente"&&b.status!=="pendente") return -1;
-    if(b.status==="pendente"&&a.status!=="pendente") return 1;
-    return (b.criadoEm||0)-(a.criadoEm||0);
-  });
-
-  let html=`<div class="titulo-secao">
-    <div><h2>Ofertas de Clientes</h2>
-      <div class="sub">Revise e aprove ou recuse ofertas submetidas pelos clientes antes que apareçam para todos</div>
-    </div>
-  </div>`;
-
-  if(!lista.length){
-    c.innerHTML=html+vazioHTML("🏷️","Nenhuma oferta submetida","Os clientes ainda não publicaram nenhuma oferta.");
-    return;
-  }
-
-  const pendentes=ordenadas.filter(o=>o.status==="pendente");
-  const outros=ordenadas.filter(o=>o.status!=="pendente");
-
-  if(pendentes.length){
-    html+=`<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px">
-      <span style="font-size:20px">⚠️</span>
-      <span style="font-size:14px;font-weight:700;color:#856404">${pendentes.length} oferta(s) aguardando sua análise</span>
-    </div>`;
-  }
-
-  for(const o of ordenadas){
-    const data=o.criadoEm?new Date(o.criadoEm).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
-    const bgStyle=o.foto?`background-image:url('${o.foto}')`:"";
-    html+=`<div class="oc-card-mod">
-      <div class="oc-bann">
-        ${o.foto?`<div class="oc-bg" style="${bgStyle}"></div>`:""}
-        <h4>${esc(o.titulo)}</h4>
-        <p>${esc(o.descricao||"")}</p>
-      </div>
-      <div class="oc-inf">
-        <div class="li"><span>👤 Cliente:</span><b>${esc(o.clienteNome||"—")}</b></div>
-        <div class="li"><span>📧 E-mail:</span><b>${esc(o.clienteEmail||"—")}</b></div>
-        ${o.local?`<div class="li"><span>📍 Local:</span><b>${esc(o.local)}</b></div>`:""}
-        ${o.validade?`<div class="li"><span>⏱ Validade:</span><b>${esc(o.validade)}</b></div>`:""}
-        <div class="li"><span>📅 Enviada em:</span><b>${data}</b></div>
-      </div>
-      <div class="oc-rod">
-        <span class="badge-status ${o.status}">${{pendente:"⏳ Pendente",aprovada:"✅ Aprovada",recusada:"❌ Recusada"}[o.status]||o.status}</span>
-        ${o.status==="pendente"?`
-          <button class="btn verde peq" onclick="aprovarOfertaCli('${o.id}')">✅ Aprovar</button>
-          <button class="btn perigo peq" onclick="recusarOfertaCli('${o.id}')">❌ Recusar</button>
-        `:`
-          ${o.status==="aprovada"?`<button class="btn perigo peq" onclick="recusarOfertaCli('${o.id}')">❌ Revogar aprovação</button>`:""}
-          ${o.status==="recusada"?`<button class="btn verde peq" onclick="aprovarOfertaCli('${o.id}')">✅ Aprovar mesmo assim</button>`:""}
-        `}
-        <button class="btn perigo peq" style="margin-left:auto" onclick="excluirOfertaCli('${o.id}')">🗑 Excluir</button>
-      </div>
-    </div>`;
-  }
-  c.innerHTML=html;
-}
-
-async function aprovarOfertaCli(id){
-  try{
-    await fsUpd("ofertasClientes",id,{status:"aprovada",moderadoEm:Date.now()});
-    toast("Oferta aprovada e publicada para os clientes!");
-    irAdmin("moderacao");
-  }catch(e){ console.error(e); toast("Erro ao aprovar oferta.",true); }
-}
-
-async function recusarOfertaCli(id){
-  try{
-    await fsUpd("ofertasClientes",id,{status:"recusada",moderadoEm:Date.now()});
-    toast("Oferta recusada.");
-    irAdmin("moderacao");
-  }catch(e){ console.error(e); toast("Erro ao recusar oferta.",true); }
-}
-
-function excluirOfertaCli(id){
-  confirmar("Excluir oferta","A oferta será removida permanentemente.",async()=>{
-    try{
-      await fsDel("ofertasClientes",id);
-      // também remove comentários relacionados
-      const coms=await fsWhere("comentariosOfertas","ofertaId",id);
-      for(const c of coms) await fsDel("comentariosOfertas",c.id);
-      toast("Oferta e comentários removidos."); irAdmin("moderacao");
-    }catch(e){ console.error(e); toast("Erro ao excluir.",true); }
-  },"Excluir");
-}
-
-/* ============================================================
-   INIT
-   ============================================================ */
+/* ============================================================ INIT ============================================================ */
 Object.assign(window,{
   selPapel,fazerLogin,sair,telaAdmin,irAdmin,formSupermercado,excluirSupermercado,painelLoja,irLoja,
   formProduto,alternarPromo,excluirProduto,importarProdutos,formOferta,excluirOferta,
   formPatrocinio,alternarPatroc,excluirPatroc,fecharModal,
   filtrarMerc,confirmarPedido,recusarPedido,
-  aprovarOfertaCli,recusarOfertaCli,excluirOfertaCli
+  aprovarComunidade,rejeitarComunidade,excluirComunidade
 });
 
 (async function init(){
-  const carregando=document.getElementById("carregando");
-  const mostrarErro=msg=>{
-    carregando.innerHTML=`<div style="text-align:center;padding:30px;max-width:420px">
-      <div style="font-size:40px">☁️⚠️</div>
-      <h2 style="color:var(--gestao);margin:10px 0">Sem conexão com a nuvem</h2>
-      <p style="color:var(--cinza);font-size:14px">Verifique sua internet e as <b>regras do Firestore</b>. Detalhe: ${esc(msg)}</p>
-    </div>`;
-  };
-
   try{
     const ls=$("#link-site"); if(ls) ls.href="sitecliente.html";
-
-    // semear é opcional — nunca deve travar o init
-    try{ await semear(); }catch(e){ console.warn("semear ignorado:",e); }
-
+    await semear();
     selPapel("admin");
-
     const s=(()=>{try{return JSON.parse(localStorage.getItem("cesta_g_sessao"));}catch(e){return null;}})();
     if(s){
-      if(s.papel==="admin"){
-        sessao=s;
-        carregando.style.display="none";
-        entrarApp();
-        return;
-      } else {
-        try{
-          const loja=await fsGet("supermercados",s.id);
-          if(loja){
-            sessao={papel:"supermercado",id:loja.id,nome:loja.nome};
-            carregando.style.display="none";
-            entrarApp();
-            return;
-          }
-        }catch(e){ console.warn("Falha ao restaurar sessão de loja:",e); }
-      }
-    }
-    // sem sessão válida — mostra portal
-    carregando.style.display="none";
-    $("#tela-portal").classList.remove("escondido");
+      if(s.papel==="admin"){ sessao=s; entrarApp(); }
+      else{ const loja=await fsGet("supermercados",s.id); if(loja){ sessao={papel:"supermercado",id:loja.id,nome:loja.nome}; entrarApp(); } else $("#tela-portal").classList.remove("escondido"); }
+    }else $("#tela-portal").classList.remove("escondido");
   }catch(e){
     console.error(e);
-    mostrarErro(e.message||String(e));
+    document.getElementById("carregando").innerHTML=`<div style="text-align:center;padding:30px;max-width:420px">
+      <div style="font-size:40px">☁️⚠️</div>
+      <h2 style="color:var(--gestao);margin:10px 0">Sem conexão com a nuvem</h2>
+      <p style="color:var(--cinza);font-size:14px">Verifique sua internet e as <b>regras do Firestore</b> (devem permitir leitura/escrita). Detalhe: ${esc(e.message||e)}</p>
+    </div>`;
+    return;
   }
+  document.getElementById("carregando").style.display="none";
 })();
 </script>
 </body>
